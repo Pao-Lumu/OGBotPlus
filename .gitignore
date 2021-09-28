@@ -1,0 +1,24 @@
+# bot token file
+config.toml
+
+# legacy token and config files
+credentials.json
+botcfg.json
+
+# bot logs
+logs/
+
+# compiled files
+*.py[c0d.]*
+__pycache__/
+*.log
+
+# ignore temporary data files
+data/
+
+# ignore general files
+.idea/
+*.xml
+/old/config.ini
+screw_around/
+venv/
