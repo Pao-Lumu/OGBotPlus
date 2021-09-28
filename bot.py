@@ -9,12 +9,15 @@ import pyfiglet
 import datetime
 import pprint
 from plugins.warframe import Warframe
+from plugins.santa import Santa
 import logging.handlers
 import sys
 import os
+from OGBPlus import OGBotPlus
 
 if os.name != "nt":
     import uvloop
+
     uvloop.install()
 
 # Logging setup
@@ -47,8 +50,13 @@ log = logging.getLogger()
 
 def load_config() -> dict:
     default = {"credentials": {'token': '', 'client_id': ''},
-               "bot_configuration": {'tracked_guild_ids': [], 'chat_channel': 0, 'default_rcon_password': '',
-                                     'santa_channel': 0, 'local_ip': '127.0.0.1'}}
+               "bot_configuration": {'main_guild': 0,
+                                     'tracked_guild_ids': [],
+                                     'chat_channel': 0,
+                                     'default_rcon_password': '',
+                                     'santa_channel': 0,
+                                     'local_ip': '127.0.0.1'}
+               }
 
     try:
         with open('config.toml') as cfg:
@@ -76,28 +84,31 @@ def load_config() -> dict:
 config = load_config()
 
 # bot = lightbulb.Bot(token=config['credentials']['token'], intents=hikari.Intents.ALL, slash_commands_only=True)
-bot = lightbulb.Bot(token=config['credentials']['token'], intents=hikari.Intents.ALL, prefix='.')
+bot = OGBotPlus(main_guild=config['bot_configuration']['main_guild'],
+                chat_channel=config['bot_configuration']['chat_channel'],
+                santa_channel=config['bot_configuration']['santa_channel'],
+                token=config['credentials']['token'],
+                intents=hikari.Intents.ALL,
+                prefix='>',
+                owner_ids=(141752316188426241,)
+                )
 
 
 @bot.listen(hikari.ShardReadyEvent)
 async def on_ready(event: hikari.ShardReadyEvent):
-    # bot.chat_channel = bot.get_channel(config['bot_configuration']['chat_channel'])
-    # bot.meme_channel = bot.get_channel(config['bot_configuration']['santa_channel'])
     bot_user = bot.get_me()
-    # pprint.pprint(dir(bot_user))
     print(f"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {pyfiglet.figlet_format(bot_user.username, font='epic')}
 Username: {bot_user.username}  |  ID: {bot_user.id}
+
+Chat Channel: {bot.chat_channel}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
-# Chat Channel: {config['bot_configuration']['chat_channel']}  |  Meme Channel: {config['bot_configuration']['meme_channel']}
 
-    # await asyncio.sleep(3)
-    # bot.cli = OGBotCmd(bot.loop, bot)
-    # try:
-        # await bot.cli.start()
-    # finally:
-        # await bot.close()
+plugins = [
+    Warframe,
+    Santa
+]
 
-
-bot.add_plugin(Warframe(bot))
+for plugin in plugins:
+    bot.add_plugin(plugin(bot))
 bot.run()
