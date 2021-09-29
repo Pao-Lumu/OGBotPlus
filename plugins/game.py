@@ -16,13 +16,22 @@ import hikari
 class Game(lightbulb.Plugin):
 
     def __init__(self, bot: OGBotPlus):
+        if psutil.WINDOWS:
+            bot.bprint("(Game Plugin) | Windows might be compatible sometimes, but is not supported as a server host.")
         self.bot = bot
+        self.check_server = None
+        self.get_current_status = None
+        self.loop = None
         super().__init__()
 
     @lightbulb.listener(hikari.events.ShardReadyEvent)
     async def on_start(self, _):
-        asyncio.get_running_loop().create_task(self.check_server_running())
-        asyncio.get_running_loop().create_task(self.get_current_server_status())
+        if not self.loop:
+            self.loop = asyncio.get_running_loop()
+        if not self.check_server:
+            self.check_server = self.loop.create_task(self.check_server_running())
+        if not self.get_current_status:
+            self.get_current_status = self.loop.create_task(self.get_current_server_status())
 
     @staticmethod
     def wait_or_when_cancelled(process):
@@ -41,15 +50,14 @@ class Game(lightbulb.Plugin):
         await asyncio.sleep(5)
         while self.bot.is_alive:
             try:
-                await asyncio.sleep(1)
-                process, data = sensor.get_game_info()
+                process, data = await asyncio.sleep(1, sensor.get_game_info())
                 if process and data:
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
                     self.bot.game.info = data
 
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
-                    await self.bot.loop.run_in_executor(None, functools.partial(self.wait_or_when_cancelled, process))
+                    await self.loop.run_in_executor(None, functools.partial(self.wait_or_when_cancelled, process))
                     self.bot.bprint(f"Server Status | Offline")
 
                     self.bot._game_running.clear()
@@ -86,16 +94,18 @@ class Game(lightbulb.Plugin):
 
 
 def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
-    if 'java' in gameinfo['executable'].lower() and (
-            'forge' in ' '.join(gameinfo['command'])
-            or 'server.jar' in ' '.join(gameinfo['command'])
-            or gameinfo['game'] == "minecraft"
-            or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
+    executable = gameinfo['executable'].lower()
+    if gameinfo['game'] == "minecraft" \
+            or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
+                or 'server.jar' in ' '.join(gameinfo['command'])
+                or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
         print("Found Minecraft")
         return minecraft.MinecraftServer(bot, process, **gameinfo)
-    elif 'srcds' in gameinfo['executable'].lower():
+    elif 'srcds' in executable:
         return source.SourceServer(bot, process, **gameinfo)
-    elif 'valheim_server' in gameinfo['executable'].lower():
+    elif 'valheim_server' in executable:
         return valheim.ValheimServer(bot, process, **gameinfo)
+    elif 'terraria' in executable:
+        pass  # nyi
     else:
         print("Didn't find server... hm.")

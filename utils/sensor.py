@@ -11,10 +11,9 @@ import toml
 
 
 def get_running() -> psutil.Process:
-    # print("get_running")
     try:
         if psutil.WINDOWS:
-            print("Windows might be compatible sometimes, but is not supported.")
+            # print("Windows might be compatible sometimes, but is not supported.")
             for p in psutil.process_iter(attrs=['connections']):
                 for x in p.info['connections']:
                     if x.laddr.port == 22222:
@@ -37,15 +36,11 @@ def get_running() -> psutil.Process:
         print('Oh no')
 
 
-def is_lgsm(proc: psutil.Process):
-    # print("is_lgsm")
-    if "serverfiles" in str(proc.cwd()):
-        return True
-    return False
+def is_lgsm(proc: psutil.Process) -> bool:
+    return True if "serverfiles" in str(proc.cwd()) else False
 
 
 def find_root_directory(start_dir: str) -> str:
-    # print("find_root_directory")
     if not os.path.isdir(start_dir):
         print(start_dir)
         raise FileNotFoundError(start_dir + "is either not a valid directory path or not accessible")
@@ -68,7 +63,6 @@ def find_root_directory(start_dir: str) -> str:
 
 
 def get_game_info() -> Tuple[psutil.Process, Dict]:
-    # print("running get_game_info")
     try:
         process = get_running()
         cwd = process.cwd()

@@ -11,16 +11,16 @@ from utils.servers.base import BaseServer
 
 
 class OGBotPlus(lightbulb.Bot, ABC):
-    def __init__(self, config: dict, **kwargs):
+    def __init__(self, config: dict, intents: hikari.Intents, prefix: str, owner_ids: typing.Iterable[int], **kwargs):
         self.cfg: typing.Dict = config
         self.main_guilds: typing.List[int] = config['main_guilds']
         self.chat_channels: typing.List[int] = config['chat_channels']
         self.santa_channel: int = config['santa_channel']
-        self.game = None
+        self.game: typing.Optional[BaseServer] = None
 
         self._game_running = asyncio.Event()
         self._game_stopped = asyncio.Event()
-        super().__init__(**kwargs)
+        super().__init__(intents=intents, prefix=prefix, owner_ids=owner_ids, **kwargs)
 
     async def wait_until_game_running(self, delay=0):
         await self._game_running.wait()
@@ -64,13 +64,3 @@ class OGBotPlus(lightbulb.Bot, ABC):
 
     def run(self, **kwargs):
         super(OGBotPlus, self).run(**kwargs)
-
-
-class Game:
-    def __init__(self, name='', server_type: BaseServer = None, info=None):
-        self.name = name
-        self._repr = name
-        self.type = server_type
-        self.info = info
-
-        # this will be extended further as I think of what to do with it
