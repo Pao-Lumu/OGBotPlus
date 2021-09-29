@@ -20,12 +20,17 @@ class A2SCompatibleServer(BaseServer):
 
                 cur_p = info.player_count
                 chat_status = f"Playing: {self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
+                print(chat_status)
                 for chan in self.bot.chat_channels_obj:
                     await chan.edit(topic=chat_status)
-                await self.bot.update_presence(status=f"{self.readable_name} | "
-                                                      f"({cur_p} player{'s' if cur_p != 1 else ''} online) | "
-                                                      f"CPU: {self.proc.cpu_percent(interval=0.1)}% | "
-                                                      f"Mem: {round(self.proc.memory_percent(), 2)}%")
+                try:
+                    await self.bot.update_presence(status=f"{self.readable_name} | "
+                                                          f"({cur_p} player{'s' if cur_p != 1 else ''} online) | "
+                                                          f"CPU: {self.proc.cpu_percent(interval=0.1)}% | "
+                                                          f"Mem: {round(self.proc.memory_percent(), 2)}%")
+                except Exception as e:
+                    print(type(e))
+                    print(e)
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except valve.source.a2s.NoResponseError:
