@@ -19,9 +19,9 @@ class Game(lightbulb.Plugin):
         if psutil.WINDOWS:
             bot.bprint("(Game Plugin) | Windows might be compatible sometimes, but is not supported as a server host.")
         self.bot = bot
+        self.loop = None
         self.check_server = None
         self.get_current_status = None
-        self.loop = None
         super().__init__()
 
     @lightbulb.listener(hikari.events.ShardReadyEvent)
@@ -47,7 +47,7 @@ class Game(lightbulb.Plugin):
                     return
 
     async def check_server_running(self):
-        await asyncio.sleep(5)
+        await asyncio.sleep(2)
         while self.bot.is_alive:
             try:
                 process, data = await asyncio.sleep(1, sensor.get_game_info())
@@ -55,6 +55,7 @@ class Game(lightbulb.Plugin):
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
                     self.bot.game.info = data
+                    print(self.bot.is_game_running)
 
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
                     await self.loop.run_in_executor(None, functools.partial(self.wait_or_when_cancelled, process))

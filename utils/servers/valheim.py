@@ -8,6 +8,7 @@ from utils.servers.a2s import A2SCompatibleServer
 class ValheimServer(A2SCompatibleServer):
     def __init__(self, bot, process: psutil.Process, **kwargs):
         super().__init__(bot, process, **kwargs)
+        self.query_port = self.port + 1
         self.game = kwargs.pop('game', 'vhserver')
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())

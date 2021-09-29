@@ -10,12 +10,13 @@ class A2SCompatibleServer(BaseServer):
     def __init__(self, bot, process, *args, **kwargs):
         super().__init__(bot, process, *args, **kwargs)
         self._repr = "A2S-Compatible Server"
+        self.query_port = kwargs.setdefault('query_port', self.port)
         self.readable_name = kwargs.setdefault('name', 'A2S-Compatible Server')
 
     async def update_server_information(self):
         while self.proc.is_running() and self.bot.is_alive:
             try:
-                info = await a2s.ainfo((self.ip, self.port))
+                info = await a2s.ainfo((self.ip, self.query_port))
 
                 cur_p = info.player_count
                 chat_status = f"Playing: {self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
