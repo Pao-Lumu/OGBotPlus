@@ -23,7 +23,7 @@ class Warframe(lightbulb.Plugin):
                 x = json.load(file)
                 self.wf_mark_items = x['items']
                 self.wf_mark_last_update = x['last_update']
-        except json.JSONDecodeError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.wf_mark_items = []
             self.wf_mark_last_update = 0
         super().__init__()
