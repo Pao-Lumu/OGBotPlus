@@ -24,7 +24,7 @@ class Game(lightbulb.Plugin):
         self.get_current_status = None
         super().__init__()
 
-    @lightbulb.listener(hikari.events.ShardReadyEvent)
+    @lightbulb.listener(hikari.ShardReadyEvent)
     async def on_start(self, _):
         if not self.loop:
             self.loop = asyncio.get_running_loop()
@@ -32,6 +32,16 @@ class Game(lightbulb.Plugin):
             self.check_server = self.loop.create_task(self.check_server_running())
         if not self.get_current_status:
             self.get_current_status = self.loop.create_task(self.get_current_server_status())
+
+    @lightbulb.listener(hikari.GuildMessageCreateEvent)
+    async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
+        if event.channel_id in self.bot.chat_channels and not event.author.is_bot:
+            if len(event.message.content) < 1500:
+                for chan in self.bot.chat_channels_obj:
+                    if chan.id != event.channel_id:
+                        await chan.send(f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}")
+            else:
+                await event.member.send("The message you sent was too long to be mirrored to the other chat channels.")
 
     @staticmethod
     def wait_or_when_cancelled(process):
