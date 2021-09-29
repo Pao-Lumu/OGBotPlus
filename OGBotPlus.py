@@ -32,9 +32,9 @@ class OGBotPlus(lightbulb.Bot, ABC):
         if delay:
             await asyncio.sleep(delay)
 
-    # @property
-    # def loop(self):
-    #     return asyncio.get_running_loop()
+    @property
+    def loop(self):
+        return asyncio.get_running_loop()
 
     @property
     def is_game_running(self) -> bool:
