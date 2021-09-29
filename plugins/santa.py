@@ -23,9 +23,14 @@ class Santa(lightbulb.Plugin):
     def __init__(self, bot):
         self.bot = bot
         self.santa_sql_lock = asyncio.Lock()
-        with open("data/ogbox.json") as sec:
-            self.lookup: dict = json.load(sec)
-            self.uplook: dict = {v: k for k, v in self.lookup.items()}
+        try:
+            with open("data/ogbox.json") as sec:
+                self.lookup: dict = json.load(sec)
+                self.uplook: dict = {v: k for k, v in self.lookup.items()}
+        except FileNotFoundError:
+            with open("data/ogbox.json", 'w') as file:
+                json.dump({"PERSON": 0}, file)
+            pass
         super().__init__(name="Santa")
 
         instant = False if os.path.exists('data/santa.sql') else True
