@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
+import logging.handlers
+import os
+import sys
+
 import hikari
-import lightbulb
-import asyncio
+import pyfiglet
 # import aiofiles
 import toml
-import pyfiglet
-import datetime
-import pprint
-from plugins.warframe import Warframe
+
+from OGBotPlus import OGBotPlus
 from plugins.santa import Santa
-import logging.handlers
-import sys
-import os
-from OGBPlus import OGBotPlus
+from plugins.warframe import Warframe
+from plugins.game import Game
+
 
 if os.name != "nt":
     import uvloop
@@ -50,9 +50,9 @@ log = logging.getLogger()
 
 def load_config() -> dict:
     default = {"credentials": {'token': '', 'client_id': ''},
-               "bot_configuration": {'main_guild': 0,
+               "bot_configuration": {'main_guilds': [0],
                                      'tracked_guild_ids': [],
-                                     'chat_channel': 0,
+                                     'chat_channels': [0],
                                      'default_rcon_password': '',
                                      'santa_channel': 0,
                                      'local_ip': '127.0.0.1'}
@@ -84,9 +84,7 @@ def load_config() -> dict:
 config = load_config()
 
 # bot = lightbulb.Bot(token=config['credentials']['token'], intents=hikari.Intents.ALL, slash_commands_only=True)
-bot = OGBotPlus(main_guild=config['bot_configuration']['main_guild'],
-                chat_channel=config['bot_configuration']['chat_channel'],
-                santa_channel=config['bot_configuration']['santa_channel'],
+bot = OGBotPlus(config=config['bot_configuration'],
                 token=config['credentials']['token'],
                 intents=hikari.Intents.ALL,
                 prefix='>',
@@ -101,12 +99,14 @@ async def on_ready(event: hikari.ShardReadyEvent):
 {pyfiglet.figlet_format(bot_user.username, font='epic')}
 Username: {bot_user.username}  |  ID: {bot_user.id}
 
-Chat Channel: {bot.chat_channel}  |  Meme Channel: {bot.santa_channel}
+Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
+
 
 plugins = [
     Warframe,
-    Santa
+    Santa,
+    Game
 ]
 
 for plugin in plugins:

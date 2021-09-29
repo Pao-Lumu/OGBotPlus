@@ -6,7 +6,7 @@ import random
 import sqlite3
 import logging
 from utils import embeds
-from OGBPlus import OGBotPlus
+from OGBotPlus import OGBotPlus
 
 # import discord
 # from discord.ext import commands
