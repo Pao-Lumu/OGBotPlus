@@ -41,7 +41,7 @@ class BaseServer:
         pass
 
     async def update_server_information(self):
-        await self.bot.update_presence(status=self.name)
+        await self.bot.update_presence(activity=hikari.Activity(name=self.name, type=0))
 
     async def sleep_with_backoff(self, tries, wait_time=5):
         await asyncio.sleep(wait_time * tries)

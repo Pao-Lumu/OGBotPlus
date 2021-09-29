@@ -4,6 +4,7 @@ import valve.rcon
 import valve.source.a2s
 from utils.servers.base import BaseServer
 import asyncio
+import hikari
 
 
 class A2SCompatibleServer(BaseServer):
@@ -20,17 +21,15 @@ class A2SCompatibleServer(BaseServer):
 
                 cur_p = info.player_count
                 chat_status = f"Playing: {self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
-                print(chat_status)
                 for chan in self.bot.chat_channels_obj:
                     await chan.edit(topic=chat_status)
-                try:
-                    await self.bot.update_presence(status=f"{self.readable_name} | "
-                                                          f"({cur_p} player{'s' if cur_p != 1 else ''} online) | "
-                                                          f"CPU: {self.proc.cpu_percent(interval=0.1)}% | "
-                                                          f"Mem: {round(self.proc.memory_percent(), 2)}%")
-                except Exception as e:
-                    print(type(e))
-                    print(e)
+                status = f"""
+{self.readable_name}
+({cur_p} player{'s' if cur_p != 1 else ''} online)
+CPU: {self.proc.cpu_percent(interval=0.1)}%
+Mem: {round(self.proc.memory_percent(), 2)}%
+"""
+                await self.bot.update_presence(activity=hikari.Activity(name=status, type=0))
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except valve.source.a2s.NoResponseError:

@@ -1,3 +1,5 @@
+import hikari
+
 from utils.servers.a2s import A2SCompatibleServer
 import psutil
 import asyncio
@@ -119,10 +121,13 @@ class SourceServer(A2SCompatibleServer):
 
                 for chan in self.bot.chat_channels_obj:
                     await chan.edit(topic=cur_status)
-                await self.bot.update_presence(status=f"{self.readable_name} | "
-                                                      f"{mode} on {cur_map} ({cur_p}/{max_p}) | "
-                                                      f"CPU: {self.proc.cpu_percent()}% | "
-                                                      f"Mem: {round(self.proc.memory_percent(), 2)}%")
+                status = f"""
+{self.readable_name} 
+({cur_p} player{'s' if cur_p != 1 else ''} online) 
+CPU: {self.proc.cpu_percent(interval=0.1)}% 
+Mem: {round(self.proc.memory_percent(), 2)}% 
+"""
+                await self.bot.update_presence(activity=hikari.Activity(name=status, type=0))
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except a2s.BufferExhaustedError:

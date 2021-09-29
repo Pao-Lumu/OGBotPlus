@@ -172,7 +172,7 @@ class MinecraftServer(BaseServer):
                 for chan in self.bot.chat_channels_obj:
                     if chan.channel_id == msg.channel_id:
                         await chan.send("Message failed to send; the bot is broken, tag Evan",
-                                                     delete_after=10)
+                                        delete_after=10)
                 continue
             except asyncio.exceptions.TimeoutError:
                 pass
@@ -208,7 +208,8 @@ class MinecraftServer(BaseServer):
                 for chan in self.bot.chat_channels_obj:
                     await chan.edit(topic=cur_status)
                 # await self.bot.set_bot_status(f'{self.bot.game} {version}', mod_count, player_count)
-                await self.bot.update_presence(status=f'{self.bot.game} {version} {mod_count} {player_count}')
+                await self.bot.update_presence(
+                    activity=hikari.Activity(name=f'{self.bot.game} {version} {mod_count} {player_count}'), type=0)
             except BrokenPipeError:
                 self.bot.bprint("Server running a MC version <1.7, or is still starting. (BrokenPipeError)")
                 await self.sleep_with_backoff(tries)
