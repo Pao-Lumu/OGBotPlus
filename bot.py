@@ -13,6 +13,7 @@ from OGBotPlus import OGBotPlus
 from plugins.santa import Santa
 from plugins.warframe import Warframe
 from plugins.game import Game
+from plugins.memes import Memes
 
 
 if os.name != "nt":
@@ -106,7 +107,8 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 plugins = [
     Warframe,
     Santa,
-    Game
+    Game,
+    Memes
 ]
 
 for plugin in plugins:
