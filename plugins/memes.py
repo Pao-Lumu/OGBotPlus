@@ -11,7 +11,6 @@ class Memes(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.GuildMessageCreateEvent)
     async def on_message(self, message: hikari.GuildMessageCreateEvent):
-        await self.bot.wait_until_ready()
         if message.author.is_bot:
             return
         self.bot.bprint(message.content)
