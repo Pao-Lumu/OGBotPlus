@@ -27,6 +27,7 @@ class Chat(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.VoiceStateUpdateEvent)
     async def on_update_voice_state(self, event: hikari.VoiceStateUpdateEvent):
+        print(event)
         guild = self.bot.cache.get_guild(event.guild_id)
         if event.state.channel_id is None:
             # User left voice channel -> remove text channel role
@@ -35,8 +36,7 @@ class Chat(lightbulb.Plugin):
             WHERE (guild_id =:guild AND voice_channel_id =:chan_id)""",
                                              {"guild": int(guild.id), "chan_id": int(chan.id)})
             [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
-
-        if event.old_state is None:
+        elif event.old_state is None:
             # User joined voice channel -> add text channel role
             chan = self.bot.cache.get_guild_channel(event.state.channel_id)
             sql_result = self.cursor.execute("""SELECT * FROM channels
@@ -45,16 +45,16 @@ class Chat(lightbulb.Plugin):
             [await event.state.member.add_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
         elif event.old_state.channel_id != event.state.channel_id:
             chan1 = self.bot.cache.get_guild_channel(event.old_state.channel_id)
-            chan2 = self.bot.cache.get_guild_channel(event.state.channel_id)
-
             sql_result1 = self.cursor.execute("""SELECT * FROM channels
             WHERE (guild_id =:guild AND voice_channel_id =:chan_id)""",
                                               {"guild": int(guild.id), "chan_id": int(chan1.id)})
+            [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result1]
+
+            chan2 = self.bot.cache.get_guild_channel(event.state.channel_id)
             sql_result2 = self.cursor.execute("""SELECT * FROM channels
             WHERE (guild_id =:guild AND voice_channel_id =:chan_id)""",
                                               {"guild": int(guild.id), "chan_id": int(chan2.id)})
 
-            [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result1]
             [await event.state.member.add_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result2]
 
     @lightbulb.check(lightbulb.guild_only)
@@ -139,7 +139,8 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
                 if re.search(r"\d{7,}", channel_ref) is not None:
                     channel_id = re.search(r"\d{7,}", channel_ref)[0]
                 else:
-                    channel_id = int([chan for (_, chan) in guild.get_channels().items() if chan.name == channel_ref][0].id)
+                    channel_id = int(
+                        [chan for (_, chan) in guild.get_channels().items() if chan.name == channel_ref][0].id)
             except ValueError:
                 await ctx.respond(f"Couldn't find a channel with exact name `{channel_ref}`")
                 return
