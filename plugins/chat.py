@@ -36,7 +36,7 @@ class Chat(lightbulb.Plugin):
                                              {"guild": int(guild.id), "chan_id": int(chan.id)})
             [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
 
-        elif event.old_state is None:
+        if event.old_state is None:
             # User joined voice channel -> add text channel role
             chan = self.bot.cache.get_guild_channel(event.state.channel_id)
             sql_result = self.cursor.execute("""SELECT * FROM channels
