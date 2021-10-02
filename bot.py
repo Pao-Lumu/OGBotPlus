@@ -14,7 +14,8 @@ from plugins.santa import Santa
 from plugins.warframe import Warframe
 from plugins.game import Game
 from plugins.memes import Memes
-
+from plugins.chat import Chat
+import lightbulb
 
 if os.name != "nt":
     import uvloop
@@ -104,11 +105,17 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
 
 
+# @bot.listen(lightbulb.CommandErrorEvent)
+# async def on_command_error(event: lightbulb.CommandErrorEvent):
+#     logging.warning(event.command.name, exc_info=event.exc_info)
+#     pass
+
 plugins = [
     Warframe,
     Santa,
     Game,
-    Memes
+    Memes,
+    Chat,
 ]
 
 for plugin in plugins:

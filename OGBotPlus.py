@@ -62,9 +62,15 @@ class OGBotPlus(lightbulb.Bot, ABC):
     def is_game_stopped(self):
         return self._game_stopped.is_set()
 
-    def bprint(self, text: str = '', *args):
+    def bprint(self, text: typing.Union[str, typing.List[str], typing.Any] = '', *args):
         cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        lines = text.split("\n")
+        if isinstance(text, list):
+            lines = text
+        elif isinstance(text, str):
+            lines = text.split("\n")
+        else:
+            lines = str(text).split("\n")
+
         for line in lines:
             print(f"{Fore.LIGHTYELLOW_EX}{cur_time}{Fore.RESET} ~ {line}", *args)
 

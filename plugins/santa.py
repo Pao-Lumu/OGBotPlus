@@ -33,8 +33,7 @@ class Santa(lightbulb.Plugin):
             pass
         super().__init__(name="Santa")
 
-        instant = False if os.path.exists('data/santa.sql') else True
-        if instant:
+        if not os.path.exists('data/santa.sql'):
             self.conn = sqlite3.connect('data/santa.sql')
             self.cursor = self.conn.cursor()
             self.cursor.execute(
@@ -45,13 +44,12 @@ class Santa(lightbulb.Plugin):
             self.conn = sqlite3.connect('data/santa.sql')
             self.cursor = self.conn.cursor()
 
+    @lightbulb.human_only
     @lightbulb.listener(hikari.events.GuildReactionAddEvent)
     async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEvent):
         try:
             author = reaction.member
         except:
-            return
-        if author.is_bot:
             return
         if reaction.channel_id == self.bot.santa_channel and reaction.emoji_name == emoji.BALLOT_BOX:
             channel = self.bot.cache.get_guild_channel(reaction.channel_id)
@@ -119,6 +117,8 @@ class Santa(lightbulb.Plugin):
                 except Exception as e:
                     await self.send_error_user(author, e)
 
+    @lightbulb.dm_only
+    @lightbulb.human_only
     @lightbulb.command()
     async def secret(self, ctx: lightbulb.Context):
         """Find out who your secret santa is for this year"""
@@ -198,6 +198,8 @@ Misleading your secret santa is allowed & encouraged.
                     await self.send_error_ctx(ctx, e)
                     pass
 
+    @lightbulb.dm_only
+    @lightbulb.human_only
     @lightbulb.command()
     async def ask(self, ctx: lightbulb.Context):
         async with self.santa_sql_lock:
@@ -221,6 +223,8 @@ Misleading your secret santa is allowed & encouraged.
         else:
             await ctx.respond("Please add a message.")
 
+    @lightbulb.dm_only
+    @lightbulb.human_only
     @lightbulb.command()
     async def respond(self, ctx: lightbulb.Context):
         async with self.santa_sql_lock:
@@ -247,6 +251,8 @@ Misleading your secret santa is allowed & encouraged.
         else:
             await ctx.respond("Please add a message.")
 
+    @lightbulb.dm_only
+    @lightbulb.human_only
     @lightbulb.command(aliases=['poll'])
     async def askall(self, ctx: lightbulb.Context):
         if ctx.get_channel():
