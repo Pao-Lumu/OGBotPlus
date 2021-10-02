@@ -27,7 +27,6 @@ class Chat(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.VoiceStateUpdateEvent)
     async def on_update_voice_state(self, event: hikari.VoiceStateUpdateEvent):
-        print(event)
         guild = self.bot.cache.get_guild(event.guild_id)
         if event.state.channel_id is None:
             # User left voice channel -> remove text channel role
