@@ -35,7 +35,9 @@ class Game(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.GuildMessageCreateEvent)
     async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
-        if event.channel_id in self.bot.chat_channels and not event.author.is_bot:
+        if event.author.is_bot:
+            return
+        if event.channel_id in self.bot.chat_channels:
             if len(event.message.content) < 1500:
                 for chan in self.bot.chat_channels_obj:
                     if chan.id != event.channel_id:

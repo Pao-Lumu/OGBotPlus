@@ -54,6 +54,7 @@ class Warframe(lightbulb.Plugin):
             j = json.loads(html)
             return j
 
+    @lightbulb.check(lightbulb.human_only)
     @lightbulb.command()
     async def baro(self, ctx):
         """Tells you where and when Baro Ki'Teer is coming to Warframe, and what he's selling when he is here."""
@@ -85,6 +86,7 @@ class Warframe(lightbulb.Plugin):
 
             await ctx.respond(dukey, embed=e)
 
+    @lightbulb.check(lightbulb.human_only)
     @lightbulb.command()
     async def nightwave(self, ctx):
         """Lists all current Nightwave missions"""
@@ -110,6 +112,7 @@ class Warframe(lightbulb.Plugin):
         else:
             await ctx.respond("Nightwave is currently inactive.")
 
+    @lightbulb.check(lightbulb.human_only)
     @lightbulb.command(aliases=["pc"])
     @lightbulb.cooldown(5, 5, lightbulb.Bucket)
     async def pricecheck(self, ctx, *, item):
