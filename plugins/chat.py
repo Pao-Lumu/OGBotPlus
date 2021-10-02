@@ -28,7 +28,7 @@ class Chat(lightbulb.Plugin):
     @lightbulb.listener(hikari.VoiceStateUpdateEvent)
     async def on_update_voice_state(self, event: hikari.VoiceStateUpdateEvent):
         guild = self.bot.cache.get_guild(event.guild_id)
-        if event.state.channel_id is None:
+        if event.state.channel_id is None or event.old_state.channel_id != event.state.channel_id:
             # User left voice channel -> remove text channel role
             chan = self.bot.cache.get_guild_channel(event.old_state.channel_id)
             sql_result = self.cursor.execute("""SELECT * FROM channels
@@ -36,7 +36,7 @@ class Chat(lightbulb.Plugin):
                                              {"guild": int(guild.id), "chan_id": int(chan.id)})
             [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
 
-        elif event.old_state is None:
+        if event.old_state is None or event.old_state.channel_id != event.state.channel_id:
             # User joined voice channel -> add text channel role
             chan = self.bot.cache.get_guild_channel(event.state.channel_id)
             sql_result = self.cursor.execute("""SELECT * FROM channels
