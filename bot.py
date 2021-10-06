@@ -15,6 +15,7 @@ from plugins.warframe import Warframe
 from plugins.game import Game
 from plugins.memes import Memes
 from plugins.chat import Chat
+from plugins.activity import Activity
 import lightbulb
 
 if os.name != "nt":
@@ -29,7 +30,7 @@ fmt = logging.Formatter('%(asctime)s - %(message)s', datefmt="%Y-%m-%d %H:%M:%S"
 log = logging.getLogger()
 sh = logging.StreamHandler(sys.stderr)
 sh.setFormatter(fmt)
-sh.setLevel(logging.INFO)
+sh.setLevel(logging.CRITICAL)
 log.addHandler(sh)
 
 discord_logger = logging.getLogger('hikari')
@@ -116,6 +117,7 @@ plugins = [
     Game,
     Memes,
     Chat,
+    Activity,
 ]
 
 for plugin in plugins:
