@@ -6,6 +6,7 @@ import lightbulb
 from hikari import ActivityType, MemberUpdateEvent, PresenceUpdateEvent, Status, VoiceStateUpdateEvent, RichActivity
 
 from OGBotPlus import OGBotPlus
+import pprint
 
 
 class Activity(lightbulb.Plugin):
@@ -51,12 +52,14 @@ class Activity(lightbulb.Plugin):
 
     async def clear_from_cache(self, user_id: int, key: str):
         await asyncio.sleep(15)
-        str_uid = str(int(user_id))
+        str_uid = str(int(user_id))  # necessary to convert from snowflake to usable str for keys
         if str_uid not in self.state.keys():
+            pprint.pprint(self.state)
             return
         else:
             self.state[str_uid].pop(key)
             self.state[str_uid].pop(key + '_future')
+            pprint.pprint(self.state)
             return
 
     @lightbulb.listener(MemberUpdateEvent)
@@ -99,15 +102,16 @@ class Activity(lightbulb.Plugin):
             # game and spotify status
             if not old:
                 acts = [MiniActivity(x) for x in new.activities]
-                for act in acts:
-                    if act.type == ActivityType.LISTENING:
-                        logging.warning(f"{usr.username} started listening to {act.details} by {act.state}")
-                    elif act.type == ActivityType.CUSTOM:
-                        logging.warning(
-                            f"{usr.username} set custom status to "
-                            f"{':' + act.emoji.name + ': ' if act.emoji else ''}{act.state if act.state else ''}")
-                    elif act.type == ActivityType.PLAYING:
-                        logging.warning(f"{usr.username} started playing {act.name}")
+                if await self.is_fresh(new.user_id, 'activities', acts):
+                    for act in acts:
+                        if act.type == ActivityType.LISTENING:
+                            logging.warning(f"{usr.username} started listening to {act.details} by {act.state}")
+                        elif act.type == ActivityType.CUSTOM:
+                            logging.warning(
+                                f"{usr.username} set custom status to "
+                                f"{':' + act.emoji.name + ': ' if act.emoji else ''}{act.state if act.state else ''}")
+                        elif act.type == ActivityType.PLAYING:
+                            logging.warning(f"{usr.username} started playing {act.name}")
             elif old.activities != new.activities:
 
                 before = frozenset(MiniActivity(x) for x in old.activities)
