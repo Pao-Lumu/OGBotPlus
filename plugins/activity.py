@@ -6,7 +6,7 @@ import lightbulb
 from hikari import ActivityType, MemberUpdateEvent, PresenceUpdateEvent, Status, VoiceStateUpdateEvent, RichActivity
 
 from OGBotPlus import OGBotPlus
-import pprint
+# import pprint
 
 
 class Activity(lightbulb.Plugin):
@@ -54,12 +54,12 @@ class Activity(lightbulb.Plugin):
         await asyncio.sleep(15)
         str_uid = str(int(user_id))  # necessary to convert from snowflake to usable str for keys
         if str_uid not in self.state.keys():
-            pprint.pprint(self.state)
+            # pprint.pprint(self.state)
             return
         else:
             self.state[str_uid].pop(key)
             self.state[str_uid].pop(key + '_future')
-            pprint.pprint(self.state)
+            # pprint.pprint(self.state)
             return
 
     @lightbulb.listener(MemberUpdateEvent)
