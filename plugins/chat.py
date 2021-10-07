@@ -1,14 +1,14 @@
 import logging
+import os
+import re
+import sqlite3
+from typing import Union
 
+import hikari
 import lightbulb
 
 from OGBotPlus import OGBotPlus
-import hikari
-
-import sqlite3
-import os
-from typing import Union
-import re
+from utils import embeds
 
 
 class Chat(lightbulb.Plugin):
@@ -68,11 +68,13 @@ class Chat(lightbulb.Plugin):
                 voice = [channel for (_, channel) in guild.get_channels().items() if
                          channel.name == voice_ref and channel.type == hikari.ChannelType.GUILD_VOICE][0]
             else:
-                await ctx.respond("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through voice definition)")
+                em = embeds.error_embed("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through voice definition)")
+                await ctx.respond(embed=em)
                 return
         except (AttributeError, IndexError) as e:
             logging.warning(type(e))
-            await ctx.respond(f"Couldn't find voice channel `{voice_ref}`")
+            em = embeds.error_embed(f"Couldn't find voice channel `{voice_ref}`")
+            await ctx.respond(embed=em)
             return
 
         try:
@@ -81,11 +83,13 @@ class Chat(lightbulb.Plugin):
             elif isinstance(role_ref, str):
                 role = [r for (_, r) in guild.get_roles().items() if r.name == role_ref][0]
             else:
-                await ctx.respond("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through role definition)")
+                em = embeds.error_embed("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through role definition)")
+                await ctx.respond(embed=em)
                 return
         except (AttributeError, IndexError) as e:
             logging.warning(type(e))
-            await ctx.respond(f"Couldn't find role `{role_ref}`")
+            em = embeds.error_embed(f"Couldn't find role `{role_ref}`")
+            await ctx.respond(embed=em)
             return
 
         sql_result = self.cursor.execute("SELECT voice_channel_id, text_channel_id FROM channels WHERE guild_id=?",
@@ -99,14 +103,17 @@ class Chat(lightbulb.Plugin):
             try:
                 if matches_text:
                     vc_name = guild.get_channel(matched_voice_id).name
-                    await ctx.respond(f"""`{text_channel.name}` is already registered to voice chat `{vc_name}`.
+                    tc_name = guild.get_channel(matched_text_id).name
+                    em = embeds.info_embed(f"""`{tc_name}` is already registered to voice chat `{vc_name}`.
 Type `>unpair {matched_voice_id}` to unpair them.""")
+                    await ctx.respond(embed=em)
                     break
                 elif matches_voice:
                     vc_name = guild.get_channel(matched_voice_id).name
                     tc_name = guild.get_channel(matched_text_id).name
-                    await ctx.respond(f"""{vc_name} is already registered to text chat `{tc_name}`.
+                    em = embeds.info_embed(f"""{vc_name} is already registered to text chat `{tc_name}`.
 Type `>unpair {matched_voice_id}` to unpair them.""")
+                    await ctx.respond(embed=em)
 
                     break
             except AttributeError:
@@ -114,8 +121,8 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
                 tc_name = f"deleted or inaccessible text chat with id `{matched_text_id}`."
 
         else:
-            await ctx.respond(
-                f"Paired voice chat `{voice.name}` with text chat `{text_channel.name}` for Role `{role.name}`")
+            em = embeds.success_embed(f"Paired voice chat `{voice.name}` with text chat `{text_channel.name}` for Role `{role.name}`")
+            await ctx.respond(embed=em)
             self.cursor.execute("INSERT INTO channels VALUES (?,?,?,?)",
                                 (guild.id, voice.id, text_channel.id, role.id))
             self.conn.commit()
@@ -137,10 +144,12 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
                     channel_id = int(
                         [chan for (_, chan) in guild.get_channels().items() if chan.name == channel_ref][0].id)
             except ValueError:
-                await ctx.respond(f"Couldn't find a channel with exact name `{channel_ref}`")
+                em = embeds.error_embed(f"Couldn't find a channel with exact name `{channel_ref}`")
+                await ctx.respond(embed=em)
                 return
         else:
-            await ctx.respond("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through channel id definition)")
+            em = embeds.error_embed("SOMETHING HAS GONE HORRIBLY WRONG (Defaulted through channel id definition)")
+            await ctx.respond(embed=em)
             return
 
         sql_result = self.cursor.execute(
@@ -160,9 +169,10 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
                 text_channel = guild.get_channel(y)
             except AttributeError:
                 text_channel = y
-            await ctx.respond(f"Unpaired voice chat `{voice_channel}` with text chat `{text_channel}`.")
+            em = embeds.success_embed(f"Unpaired voice chat `{voice_channel}` with text chat `{text_channel}`.")
+            await ctx.respond(embed=em)
             break
         else:
             channel = guild.get_channel(channel_id)
-            await ctx.respond(
-                f"{'Voice' if channel.type == 2 else 'Text'} channel `{channel.name}`is not paired to any {'voice' if channel.type == 0 else 'text'} channel.")
+            em = embeds.info_embed(f"{'Voice' if channel.type == 2 else 'Text'} channel `{channel.name}`is not paired to any {'voice' if channel.type == 0 else 'text'} channel.")
+            await ctx.respond(embed=em)
