@@ -83,21 +83,24 @@ class Activity(lightbulb.Plugin):
                         logging.warning(f"{new.username} changed nickname from {old.nickname} to {new.nickname}")
 
     @lightbulb.listener(PresenceUpdateEvent)
-    async def on_prescence_update(self, event: PresenceUpdateEvent):
+    async def on_presence_update(self, event: PresenceUpdateEvent):
         if event.get_user().is_bot:
             return
         if event.presence and event.presence.guild_id not in self.bot.cfg['main_guilds']:
             return
-        old = event.old_presence
-        new = event.presence
-        usr = await event.fetch_user()
         # status
         async with self.lock:
+            old = event.old_presence
+            new = event.presence
+            usr = await event.fetch_user()
+            # print("print1")
+            # pprint.pprint(self.state)
             if await self.is_fresh(new.user_id, 'visible_status', new.visible_status.name):
                 if not old:
                     logging.warning(f"{usr.username} came online ({new.visible_status.name})")
                 elif new.visible_status == Status.OFFLINE:
                     logging.warning(f"{usr.username} went offline ({new.visible_status.name})")
+                    # pprint.pprint(self.state)
                 elif new.visible_status != old.visible_status:
                     logging.warning(f"{usr.username} changed visibility to ({new.visible_status.name})")
             # game and spotify status

@@ -92,7 +92,8 @@ bot = OGBotPlus(config=config['bot_configuration'],
                 intents=hikari.Intents.ALL,
                 prefix='>',
                 owner_ids=(141752316188426241,),
-                ignore_bots=True)
+                ignore_bots=True,
+                banner=None)
 
 
 @bot.listen(hikari.ShardReadyEvent)
