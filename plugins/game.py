@@ -38,12 +38,12 @@ class Game(lightbulb.Plugin):
         if event.author.is_bot:
             return
         if event.channel_id in self.bot.chat_channels:
-            if len(event.message.content) < 1500:
+            if len(event.message.content) < 1750:
                 for chan in self.bot.chat_channels_obj:
                     if chan.id != event.channel_id:
                         await chan.send(f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}")
             else:
-                await event.member.send("The message you sent was too long to be mirrored to the other chat channels.")
+                await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
 
     @staticmethod
     def wait_or_when_cancelled(process):

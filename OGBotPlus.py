@@ -56,7 +56,15 @@ class OGBotPlus(lightbulb.Bot, ABC):
 
     @property
     def chat_channels_obj(self) -> typing.List[hikari.GuildChannel]:
-        return [self.cache.get_guild_channel(chan) for chan in self.chat_channels]
+        # return [self.cache.get_guild_channel(chan) for chan in self.chat_channels]
+        result = []
+        for chan in self.chat_channels:
+            try:
+                result.append(self.cache.get_guild_channel(chan))
+            except (hikari.ForbiddenError, hikari.NotFoundError):  # this is just a guess at what it'll raise
+                self.bprint(f"Couldn't find channel with id {chan}. It may have been deleted.")
+                continue
+        return result
 
     @property
     def is_game_stopped(self):

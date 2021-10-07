@@ -52,15 +52,16 @@ class Activity(lightbulb.Plugin):
 
     async def clear_from_cache(self, user_id: int, key: str):
         await asyncio.sleep(15)
-        str_uid = str(int(user_id))  # necessary to convert from snowflake to usable str for keys
-        if str_uid not in self.state.keys():
-            # pprint.pprint(self.state)
-            return
-        else:
-            self.state[str_uid].pop(key)
-            self.state[str_uid].pop(key + '_future')
-            # pprint.pprint(self.state)
-            return
+        async with self.lock:
+            str_uid = str(int(user_id))  # necessary to convert from snowflake to usable str for keys
+            if str_uid not in self.state.keys():
+                # pprint.pprint(self.state)
+                return
+            else:
+                self.state[str_uid].pop(key)
+                self.state[str_uid].pop(key + '_future')
+                # pprint.pprint(self.state)
+                return
 
     @lightbulb.listener(MemberUpdateEvent)
     async def on_member_update(self, event: MemberUpdateEvent):
