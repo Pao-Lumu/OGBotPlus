@@ -28,12 +28,14 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
                                             stdout=PIPE, stderr=DEVNULL)
             raw = ps.stdout.read().decode("utf-8")
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
+            pids.sort(key=lambda x, y: x)
             procs = []
+            used_pids = []
             for port, pid in pids:
                 proc = psutil.Process(pid=int(pid))
-                if proc.username() == psutil.Process().username():
+                if proc.username() == psutil.Process().username() and pid not in used_pids:
+                    used_pids.append(pid)
                     procs.append((int(port), proc))
-
 
             # procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=int(x))) for port, x in pids] if
             #          proc.username() == psutil.Process().username() and int(port) in valid_ports]

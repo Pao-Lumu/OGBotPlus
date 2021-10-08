@@ -71,7 +71,6 @@ class Game(lightbulb.Plugin):
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
                     for _, process, data in running_server_data:
-                        print(data)
                         self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
                     continue
                 if not running_server_data:
