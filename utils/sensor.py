@@ -12,7 +12,7 @@ import toml
 valid_ports = [22221, 22222, 22223, 22224, 22225]
 
 
-def get_running() -> List[Tuple[str, psutil.Process]]:
+def get_running() -> List[Tuple[int, psutil.Process]]:
     try:
         if psutil.WINDOWS:
             for p in psutil.process_iter(attrs=['connections']):
@@ -29,7 +29,7 @@ def get_running() -> List[Tuple[str, psutil.Process]]:
             raw = ps.stdout.read().decode("utf-8")
             print(raw)
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
-            procs = [(port, proc) for port, proc in [(port, psutil.Process(pid=x)) for port, x in pids] if
+            procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=x)) for port, x in pids] if
                      proc.username() == psutil.Process().username()]
             print(procs)
             if not procs:
