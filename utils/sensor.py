@@ -75,14 +75,14 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
         return None, None
     root = find_root_directory(cwd)
     toml_path = path.join(root, '.gameinfo.toml')
-
+    print("got past toml_path")
     defaults = {'name': Path(root).name,
                 'game': '',
                 'folder': cwd,
                 'rcon': '',
                 'executable': process.name(),
                 'command': process.cmdline()}
-
+    print("got past defaults")
     if is_lgsm(process):
         game_name = ""
         with os.scandir(root) as scan:
@@ -90,7 +90,7 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
                 if f.name.endswith('server'):
                     game_name = f.name
                     break
-
+        print("got past scandir")
         # define paths to noteworthy places
         root_dir = root
         log_dir = path.join(root_dir, 'log')
@@ -98,7 +98,7 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
         lgsm_dir = path.join(root_dir, 'lgsm')
         config_dir = path.join(lgsm_dir, 'config-lgsm', game_name)
         readable_name = ''
-
+        print("got past various var defs")
         try:
             with open(path.join(config_dir, f'{game_name}.cfg')) as f:
                 game_cfg = toml.load(f)
@@ -106,7 +106,7 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
             print("File failed to parse.")
             print(e)
             print(e.mro())
-
+        print("got past toml loading")
         with open(path.join(lgsm_dir, 'data', 'serverlist.csv')) as svr_names:
             for row in csv.reader(svr_names, csv.unix_dialect):
                 if row[1] == game_name:
