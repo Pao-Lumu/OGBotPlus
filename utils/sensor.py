@@ -27,9 +27,7 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
             ps: psutil.Popen = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :2222\d*", shell=True,
                                             stdout=PIPE, stderr=DEVNULL)
             raw = ps.stdout.read().decode("utf-8")
-            print(raw)
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
-            print(pids)
             procs = []
             for port, pid in pids:
                 proc = psutil.Process(pid=int(pid))
@@ -39,7 +37,6 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
 
             # procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=int(x))) for port, x in pids] if
             #          proc.username() == psutil.Process().username() and int(port) in valid_ports]
-            print(procs)
             if not procs:
                 raise ProcessLookupError('Process not running or not accessible by bot.')
             else:
