@@ -26,8 +26,8 @@ def get_running() -> List[Tuple[str, psutil.Process]]:
         elif psutil.LINUX:
             ps: psutil.Popen = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :2222\d*", shell=True,
                                             stdout=PIPE, stderr=DEVNULL)
-            print(ps.name())
             pids = re.findall(r'(2222\d)(?<=pid=)(\d+)', ps.stdout.read().decode("utf-8"))
+            print(pids)
             procs = [(port, proc) for port, proc in [(port, psutil.Process(pid=x)) for port, x in pids] if
                      proc.username() == psutil.Process().username()]
             print(procs)
