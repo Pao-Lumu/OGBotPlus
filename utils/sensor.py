@@ -26,6 +26,7 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
         elif psutil.LINUX:
             ps: psutil.Popen = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :2222\d*", shell=True,
                                             stdout=PIPE, stderr=DEVNULL)
+            print("TESTING 123")
             raw = ps.stdout.read().decode("utf-8")
             print(raw)
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
