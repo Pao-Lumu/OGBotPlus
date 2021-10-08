@@ -64,6 +64,7 @@ class Game(lightbulb.Plugin):
             try:
                 await asyncio.sleep(2)
                 running_server_data = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
+                print(running_server_data)
                 if running_server_data:
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
