@@ -81,7 +81,7 @@ class Game(lightbulb.Plugin):
                     self.bot._game_stopped.set()
                     self.bot.games = {}
             except (ProcessLookupError, ValueError, AttributeError):
-                await asyncio.sleep(5)
+                await asyncio.sleep(3)
                 continue
             except Exception as e:
                 print(str(type(e)) + ": " + str(e))
