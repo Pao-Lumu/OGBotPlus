@@ -6,7 +6,6 @@ import sys
 
 import hikari
 import pyfiglet
-# import aiofiles
 import toml
 
 from OGBotPlus import OGBotPlus
@@ -16,7 +15,6 @@ from plugins.game import Game
 from plugins.memes import Memes
 from plugins.chat import Chat
 from plugins.activity import Activity
-import lightbulb
 
 if os.name != "nt":
     import uvloop
@@ -52,14 +50,20 @@ log = logging.getLogger()
 
 
 def load_config() -> dict:
-    default = {"credentials": {'token': '', 'client_id': ''},
-               "bot_configuration": {'main_guilds': [0],
-                                     'tracked_guild_ids': [],
-                                     'chat_channels': [0],
-                                     'default_rcon_password': '',
-                                     'santa_channel': 0,
-                                     'local_ip': '127.0.0.1'}
-               }
+    default = {
+        "credentials": {
+            'token': '',
+            'client_id': ''
+        },
+        "bot_configuration": {
+            'main_guilds': [0],
+            'tracked_guild_ids': [],
+            'santa_channel': 0,
+            'local_ip': '127.0.0.1',
+            'default_rcon_password': '',
+            'chat_channels': [0],
+        }
+    }
 
     try:
         with open('config.toml') as cfg:
