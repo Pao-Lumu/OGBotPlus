@@ -31,8 +31,18 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
             print(raw)
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
             print(pids)
-            procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=x)) for port, x in pids] if
-                     proc.username() == psutil.Process().username() and int(port) in valid_ports]
+            procs = []
+            for port, pid in pids:
+                print("a")
+                proc = psutil.Process(pid=pid)
+                print("b")
+                if proc.username() == psutil.Process().username():
+                    print("c")
+                    procs.append((int(port), proc))
+                print("d")
+
+            # procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=x)) for port, x in pids] if
+            #          proc.username() == psutil.Process().username() and int(port) in valid_ports]
             print(procs)
             if not procs:
                 raise ProcessLookupError('Process not running or not accessible by bot.')
