@@ -13,7 +13,8 @@ class Memes(lightbulb.Plugin):
     async def on_message(self, message: hikari.GuildMessageCreateEvent):
         if not message.content:
             return
-        self.bot.bprint(message.content)
+        if not message.is_bot:
+            self.bot.bprint(message.content)
         msg = message.content.lower()
         if 'egg' in msg or '🥚' in msg:
             if re.match(r'what,? you egg', msg):
