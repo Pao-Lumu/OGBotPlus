@@ -63,10 +63,9 @@ class Game(lightbulb.Plugin):
         first_run = True
         while self.bot.is_alive:
             try:
-                await asyncio.sleep(2)
                 running_server_data = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
                 if running_server_data and self.bot.is_game_running:
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(5)
                     continue
                 elif running_server_data and not self.bot.is_game_running:
                     self.bot._game_stopped.clear()
@@ -81,7 +80,7 @@ class Game(lightbulb.Plugin):
                     self.bot._game_stopped.set()
                     self.bot.games = {}
             except (ProcessLookupError, ValueError, AttributeError):
-                await asyncio.sleep(3)
+                await asyncio.sleep(5)
                 continue
             except Exception as e:
                 print(str(type(e)) + ": " + str(e))
