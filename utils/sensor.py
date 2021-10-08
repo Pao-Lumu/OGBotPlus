@@ -28,7 +28,8 @@ def get_running() -> List[Tuple[int, psutil.Process]]:
                                             stdout=PIPE, stderr=DEVNULL)
             raw = ps.stdout.read().decode("utf-8")
             pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
-            pids.sort(key=lambda x, y: x)
+            pids.sort()
+            print(pids)
             procs = []
             used_pids = []
             for port, pid in pids:
