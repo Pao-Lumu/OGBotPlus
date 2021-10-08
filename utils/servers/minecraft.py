@@ -183,7 +183,7 @@ class MinecraftServer(BaseServer):
 
     async def update_server_information(self):
         tries = 1
-        server = mc.lookup("localhost:22222")
+        server = mc.lookup(f"{self.ip}:{self.port}")
         failed = False
         while self.proc.is_running() and self.bot.is_alive:
             try:

@@ -4,34 +4,36 @@ import re
 from os import path
 from pathlib import Path
 from subprocess import PIPE, DEVNULL
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import psutil
 import toml
 
+valid_ports = [22221, 22222, 22223, 22224, 22225]
 
-def get_running() -> psutil.Process:
+
+def get_running() -> List[Tuple[str, psutil.Process]]:
     try:
         if psutil.WINDOWS:
             # print("Windows might be compatible sometimes, but is not supported.")
             for p in psutil.process_iter(attrs=['connections']):
                 for x in p.info['connections']:
-                    if x.laddr.port == 22222:
+                    if x.laddr.port in valid_ports:
                         return p
                 else:
                     continue
             else:
                 raise ProcessLookupError('Process not running')
         elif psutil.LINUX:
-            ps = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :22222 | grep -oP '(?<=pid\=)(\d+)'", shell=True,
-                              stdout=PIPE, stderr=DEVNULL)
-            pid = ps.stdout.read().decode("utf-8").split('\n')[0]
-            if pid:
-                proc = psutil.Process(pid=int(pid))
-                if proc.username() == psutil.Process().username():
-                    return proc
-                else:
-                    raise ProcessLookupError('Process not running or not accessible by bot.')
+            ps: psutil.Popen = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :2222\d*", shell=True,
+                                            stdout=PIPE, stderr=DEVNULL)
+            pids = re.findall(r'(2222\d)(?<=pid=)(\d+)', ps.stdout.read())
+            procs = [(port, proc) for port, proc in [(port, psutil.Process(pid=x)) for port, x in pids] if
+                     proc.username() == psutil.Process().username()]
+            if not procs:
+                raise ProcessLookupError('Process not running or not accessible by bot.')
+            else:
+                return procs
     except AttributeError:
         print('Oh no')
 
@@ -62,9 +64,8 @@ def find_root_directory(start_dir: str) -> str:
                 print("Hey... This isn't supposed to happen...")
 
 
-def get_game_info() -> Tuple[psutil.Process, Dict]:
+def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
     try:
-        process = get_running()
         cwd = process.cwd()
     except ProcessLookupError:
         raise ProcessLookupError('Process not running or not accessible by bot.')
@@ -127,7 +128,7 @@ def get_game_info() -> Tuple[psutil.Process, Dict]:
         try:
             with open(toml_path) as file:
 
-                    game_info = {**defaults, **toml.load(file)}
+                game_info = {**defaults, **toml.load(file)}
 
             with open(toml_path, "w") as file:
                 toml.dump(game_info, file)

@@ -41,7 +41,8 @@ class Game(lightbulb.Plugin):
             if len(event.message.content) < 1750:
                 for chan in self.bot.chat_channels_obj:
                     if chan.id != event.channel_id:
-                        await chan.send(f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}")
+                        await chan.send(
+                            f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}")
             else:
                 await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
 
@@ -59,30 +60,24 @@ class Game(lightbulb.Plugin):
                     return
 
     async def check_server_running(self):
-        await asyncio.sleep(2)
         while self.bot.is_alive:
             try:
-                process, data = await asyncio.sleep(1, sensor.get_game_info())
-                if process and data:
+                running_server_data = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
+                if running_server_data:
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
-                    self.bot.game.info = data
-                    print(self.bot.is_game_running)
-
-                    self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
-                    await self.loop.run_in_executor(None, functools.partial(self.wait_or_when_cancelled, process))
+                    for _, process, data in running_server_data:
+                        self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
+                        await asyncio.sleep(2)
+                    await asyncio.gather(
+                        *[self.loop.run_in_executor(None, functools.partial(self.wait_or_when_cancelled, process)) for
+                          _, process in running_server_data])
+                if not running_server_data:
                     self.bot.bprint(f"Server Status | Offline")
-
                     self.bot._game_running.clear()
                     self.bot._game_stopped.set()
-                    self.bot.game.info = None
-            except ProcessLookupError:
-                await asyncio.sleep(5)
-                continue
-            except ValueError:
-                await asyncio.sleep(5)
-                continue
-            except AttributeError:
+                    self.bot.games = {}
+            except (ProcessLookupError, ValueError, AttributeError):
                 await asyncio.sleep(5)
                 continue
             except Exception as e:
@@ -91,17 +86,17 @@ class Game(lightbulb.Plugin):
 
     async def get_current_server_status(self):
         await self.bot.wait_until_game_running(1)
-        self.bot.game = None
         while self.bot.is_alive:
             # If game is running upon instantiation
             if self.bot.is_game_running:
-                process, data = sensor.get_game_info()
-                self.bot.game = generate_server_object(self.bot, process, data)
+                running = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
+                for port, process, data in running:
+                    self.bot.games[port] = generate_server_object(self.bot, process, data)
                 await self.bot.wait_until_game_stopped(2)
 
             # Elif no game is running upon instantiation:
             elif self.bot.is_game_stopped:
-                self.bot.game = None
+                self.bot.games = {}
                 await self.bot.update_presence()
                 await self.bot.wait_until_game_running(2)
 

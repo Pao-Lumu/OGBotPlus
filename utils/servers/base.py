@@ -6,12 +6,12 @@ import psutil
 
 
 class BaseServer:
-    def __init__(self, bot, process: psutil.Process, *args, **kwargs):
+    def __init__(self, bot, process: psutil.Process, **kwargs):
         self.bot = bot
         self.proc = process
         self.name = kwargs.pop('name', 'a game')
         self.ip = kwargs.pop('ip', '127.0.0.1')
-        self.port = kwargs.pop('port', 22222)
+        self.port = int(kwargs.pop('port', 22222))
         self.password = kwargs.pop('rcon_password') if kwargs.get('rcon_password') else kwargs.pop(
             'rcon') if kwargs.get('rcon') else self.bot.cfg["default_rcon_password"]
         self.working_dir = kwargs.pop('folder', '')

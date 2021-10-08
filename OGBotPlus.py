@@ -4,8 +4,8 @@ from abc import ABC
 import hikari
 import lightbulb
 import typing
+from typing import Dict, Optional, List, Iterable, Any, Union
 import asyncio
-from lightbulb import help as help_
 from colorama import Fore
 from utils.servers.base import BaseServer
 
@@ -15,14 +15,14 @@ class OGBotPlus(lightbulb.Bot, ABC):
                  config: dict,
                  intents: hikari.Intents,
                  prefix: str,
-                 owner_ids: typing.Iterable[int],
+                 owner_ids: Iterable[int],
                  ignore_bots: bool,
                  **kwargs):
-        self.cfg: typing.Dict = config
-        self.main_guilds: typing.List[int] = config['main_guilds']
-        self.chat_channels: typing.List[int] = config['chat_channels']
+        self.cfg: Dict = config
+        self.main_guilds: List[int] = config['main_guilds']
+        self.chat_channels: List[int] = config['chat_channels']
         self.santa_channel: int = config['santa_channel']
-        self.game: typing.Optional[BaseServer] = None
+        self.games: Dict[str, BaseServer] = dict()
 
         self._game_running = asyncio.Event()
         self._game_stopped = asyncio.Event()
@@ -47,7 +47,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
         return self._game_running.is_set()
 
     @property
-    def main_guild_obj(self) -> typing.List[hikari.Guild]:
+    def main_guild_obj(self) -> List[hikari.Guild]:
         return [self.cache.get_guild(guild) for guild in self.main_guilds]
 
     @property
@@ -55,7 +55,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
         return self.cache.get_guild_channel(self.santa_channel)
 
     @property
-    def chat_channels_obj(self) -> typing.List[hikari.GuildChannel]:
+    def chat_channels_obj(self) -> List[hikari.GuildChannel]:
         # return [self.cache.get_guild_channel(chan) for chan in self.chat_channels]
         result = []
         for chan in self.chat_channels:
@@ -70,7 +70,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
     def is_game_stopped(self):
         return self._game_stopped.is_set()
 
-    def bprint(self, text: typing.Union[str, typing.List[str], typing.Any] = '', *args):
+    def bprint(self, text: Union[str, List[str], Any] = '', *args):
         cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if isinstance(text, list):
             lines = text
