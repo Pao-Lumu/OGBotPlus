@@ -62,6 +62,7 @@ class Game(lightbulb.Plugin):
     async def check_server_running(self):
         while self.bot.is_alive:
             try:
+                await asyncio.sleep(2)
                 running_server_data = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
                 if running_server_data:
                     self.bot._game_stopped.clear()
