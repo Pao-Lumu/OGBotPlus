@@ -28,7 +28,7 @@ def get_running() -> List[Tuple[str, psutil.Process]]:
                                             stdout=PIPE, stderr=DEVNULL)
             raw = ps.stdout.read().decode("utf-8")
             print(raw)
-            pids = re.findall(r'(2222\d)(?<=pid=)(\d+)', raw)
+            pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
             procs = [(port, proc) for port, proc in [(port, psutil.Process(pid=x)) for port, x in pids] if
                      proc.username() == psutil.Process().username()]
             print(procs)
