@@ -22,6 +22,7 @@ class Game(lightbulb.Plugin):
         self.loop = None
         self.check_server = None
         self.get_current_status = None
+        self.ports = bot.cfg['game_port_range']
         super().__init__()
 
     @lightbulb.listener(hikari.ShardReadyEvent)
@@ -29,9 +30,9 @@ class Game(lightbulb.Plugin):
         if not self.loop:
             self.loop = asyncio.get_running_loop()
         if not self.check_server:
-            self.check_server = self.loop.create_task(self.check_server_running())
-        if not self.get_current_status:
-            self.get_current_status = self.loop.create_task(self.get_current_server_status())
+            self.check_server = self.loop.create_task(self.server_running_loop())
+        # if not self.get_current_status:
+        #     self.get_current_status = self.loop.create_task(self.get_current_server_status())
 
     @lightbulb.listener(hikari.GuildMessageCreateEvent)
     async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
@@ -46,60 +47,39 @@ class Game(lightbulb.Plugin):
             else:
                 await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
 
-    @staticmethod
-    def wait_or_when_cancelled(process):
-        bot_proc = psutil.Process()
-        while True:
-            try:
-                process.wait(timeout=1)
-                return
-            except psutil.TimeoutExpired:
-                if bot_proc.is_running():
-                    continue
-                else:
-                    return
-
-    async def check_server_running(self):
-        first_run = True
+    async def server_running_loop(self):
+        known_running_servers = []
         while self.bot.is_alive:
-            try:
-                running_server_data = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
-                if running_server_data and self.bot.is_game_running:
-                    await asyncio.sleep(5)
+            any_server_running = sensor.are_servers_running(self.ports)
+            if any_server_running and self.bot.is_game_running:
+                running_servers = sensor.get_running_procs(self.ports)
+                new_servers = [(port, server) for port, server in running_servers if
+                               server not in known_running_servers]
+                if not new_servers:
+                    await asyncio.sleep(2)
                     continue
-                elif running_server_data and not self.bot.is_game_running:
-                    self.bot._game_stopped.clear()
-                    self.bot._game_running.set()
-                    for _, process, data in running_server_data:
-                        self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
-                    continue
-                if not running_server_data:
-                    self.bot.bprint(f"Server Status | Offline")
-                    self.bot._game_running.clear()
-                    self.bot._game_stopped.set()
-                    self.bot.games = {}
-            except (ProcessLookupError, ValueError, AttributeError):
-                await asyncio.sleep(5)
+                for port, server in running_servers:
+                    self.bot.games[str(port)] = generate_server_object(bot=self.bot,
+                                                                       process=server,
+                                                                       gameinfo=sensor.get_game_info(server))
+                known_running_servers = running_servers
                 continue
-            except Exception as e:
-                print(str(type(e)) + ": " + str(e))
-                print("This is from the server checker")
-
-    async def get_current_server_status(self):
-        await self.bot.wait_until_game_running(1)
-        while self.bot.is_alive:
-            # If game is running upon instantiation
-            if self.bot.is_game_running:
-                running = [(port, *sensor.get_game_info(x)) for port, x in sensor.get_running()]
-                for port, process, data in running:
-                    self.bot.games[port] = generate_server_object(self.bot, process, data)
-                await self.bot.wait_until_game_stopped(2)
-
-            # Elif no game is running upon instantiation:
-            elif self.bot.is_game_stopped:
-                self.bot.games = {}
-                await self.bot.update_presence()
-                await self.bot.wait_until_game_running(2)
+            elif any_server_running and not self.bot.is_game_running:
+                self.bot._game_stopped.clear()
+                self.bot._game_running.set()
+                running_servers = sensor.get_running_procs(self.ports)
+                for port, server in running_servers:
+                    self.bot.games[str(port)] = generate_server_object(bot=self.bot,
+                                                                       process=server,
+                                                                       gameinfo=sensor.get_game_info(server))
+                known_running_servers = running_servers
+                continue
+            elif not any_server_running and self.bot.is_game_running:
+                self.bot._game_running.clear()
+                self.bot._game_stopped.set()
+            # just wait for a bit and continue
+            await asyncio.sleep(5)
+            continue
 
 
 def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:

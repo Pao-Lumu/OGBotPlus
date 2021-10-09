@@ -62,6 +62,7 @@ def load_config() -> dict:
             'local_ip': '127.0.0.1',
             'default_rcon_password': '',
             'chat_channels': [0],
+            'game_port_range': []
         }
     }
 

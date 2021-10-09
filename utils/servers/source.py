@@ -14,8 +14,8 @@ valvercon.RCONMessage.ENCODING = "utf-8"
 
 
 class SourceServer(A2SCompatibleServer):
-    def __init__(self, bot, process: psutil.Process, *args, **kwargs):
-        super().__init__(bot, process, *args, **kwargs)
+    def __init__(self, bot, process: psutil.Process, **kwargs):
+        super().__init__(bot, process, **kwargs)
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
@@ -24,6 +24,8 @@ class SourceServer(A2SCompatibleServer):
         self.bot.loop.create_task(self._log_loop())
         self._repr = "Source"
         self.readable_name = kwargs.setdefault('name', 'Source Server')
+
+        asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
 
     async def _log_loop(self):
         port = 22242
@@ -118,16 +120,14 @@ class SourceServer(A2SCompatibleServer):
                 cur_p = info.player_count
                 max_p = info.max_players
                 cur_status = f"Playing: {self.readable_name} - {mode} on map {cur_map} ({cur_p}/{max_p} players)"
-
-                for chan in self.bot.chat_channels_obj:
-                    await chan.edit(topic=cur_status)
+                self.bot.add_game_chat_info(self.name, cur_status)
                 status = f"""
 {self.readable_name} 
-({cur_p} player{'s' if cur_p != 1 else ''} online) 
-CPU: {self.proc.cpu_percent(interval=0.1)}% 
+({cur_p} player{'s' if cur_p != 1 else ''}) 
+CPU: {self.proc.cpu_percent()}% 
 Mem: {round(self.proc.memory_percent(), 2)}% 
 """
-                await self.bot.update_presence(activity=hikari.Activity(name=status, type=0))
+                await self.bot.add_game_presence(self.name, status)
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except a2s.BufferExhaustedError:

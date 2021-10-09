@@ -8,8 +8,8 @@ import hikari
 
 
 class A2SCompatibleServer(BaseServer):
-    def __init__(self, bot, process, *args, **kwargs):
-        super().__init__(bot, process, *args, **kwargs)
+    def __init__(self, bot, process, **kwargs):
+        super().__init__(bot, process, **kwargs)
         self._repr = "A2S-Compatible Server"
         self.query_port = kwargs.setdefault('query_port', self.port)
         self.readable_name = kwargs.setdefault('name', 'A2S-Compatible Server')
@@ -20,16 +20,15 @@ class A2SCompatibleServer(BaseServer):
                 info = await a2s.ainfo((self.ip, self.query_port))
 
                 cur_p = info.player_count
-                chat_status = f"Playing: {self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
-                for chan in self.bot.chat_channels_obj:
-                    await chan.edit(topic=chat_status)
+                chat_status = f"{self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
+                self.bot.add_game_chat_info(self.name, chat_status)
                 status = f"""
 {self.readable_name}
 ({cur_p} player{'s' if cur_p != 1 else ''} online)
-CPU: {self.proc.cpu_percent(interval=0.1)}%
+CPU: {self.proc.cpu_percent()}%
 Mem: {round(self.proc.memory_percent(), 2)}%
 """
-                await self.bot.update_presence(activity=hikari.Activity(name=status, type=0))
+                await self.bot.add_game_presence(self.name, activity=hikari.Activity(name=status, type=0))
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except valve.source.a2s.NoResponseError:

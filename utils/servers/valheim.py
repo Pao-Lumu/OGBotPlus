@@ -10,13 +10,13 @@ class ValheimServer(A2SCompatibleServer):
         super().__init__(bot, process, **kwargs)
         self.query_port = self.port + 1
         self.game = kwargs.pop('game', 'vhserver')
-        self.bot.loop.create_task(self.chat_from_game_to_guild())
-        self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
-        self.log = list()
-        self.log_lock = asyncio.Lock()
-        self.bot.loop.create_task(self._log_loop())
         self._repr = "Valheim"
         self.readable_name = kwargs.setdefault('name', 'Valheim Server')
 
-        self.logs = kwargs.pop('logs')
+        asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
+
+    def teardown(self):
+        self.bot.games.pop(str(self.port))
+        self.bot.games.pop(str(self.query_port))
+        self.bot.remove_game_presence(self.name)

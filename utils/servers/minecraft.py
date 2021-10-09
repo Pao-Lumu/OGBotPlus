@@ -3,6 +3,7 @@ import datetime
 import os
 import socket
 import textwrap as tw
+from typing import List, Union, Dict, Tuple, Optional
 from os import path
 
 import aiofiles
@@ -25,8 +26,10 @@ class MinecraftServer(BaseServer):
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
-        self.motd = kwargs.pop('motd', "A Minecraft Server")
+        self.motd: str = kwargs.pop('motd', "A Minecraft Server")
         self._repr = "Minecraft"
+
+        asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
 
     async def _rcon_connect(self):
         if not self.rcon:
@@ -73,11 +76,11 @@ class MinecraftServer(BaseServer):
                 lines = await log.readlines()  # Returns instantly
                 msgs = list()
                 for line in lines:
-                    raw_player_msg = regex.findall(player_filter, line)
-                    raw_server_msg = regex.findall(server_filter, line)
+                    raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
+                    raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
                     if raw_player_msg:
-                        x = self.check_for_mentions(raw_player_msg)
+                        x = self.check_for_mentions(raw_player_msg[0])
                         msgs.append(x)
                         # pass
                     elif raw_server_msg:
@@ -89,34 +92,28 @@ class MinecraftServer(BaseServer):
                     for chan in self.bot.chat_channels_obj:
                         await chan.send(x)
                 for msg in msgs:
-                    self.bot.bprint(f"{self.bot.game} | {''.join(msg)}")
+                    self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
                 if date != datetime.datetime.now().day:
                     break
                 await asyncio.sleep(.75)
 
-    # def check_for_mentions(self, raw_player_msg):
-    #     pass
-
-    def check_for_mentions(self, raw_player_msg) -> str:
-        message = raw_player_msg[0]
-        indexes = [m.start() for m in regex.finditer('@', message)]
-        if indexes:
+    def check_for_mentions(self, message: str) -> str:
+        indexes: List[int] = [m.start() for m in regex.finditer('@', message)]
+        for index in indexes:
             try:
-                for index in indexes:
-                    mention = message[index + 1:]
-                    length = len(mention) + 1
-                    for chan in self.bot.chat_channels_obj:
-                        for ind in range(0, length):
-                            member = lightbulb.utils.find(chan.members,
-                                                          lambda m: m.name == mention[:ind] or m.nick == mention[:ind])
-                            if member:
-                                message = message.replace("@" + mention[:ind], f"<@{member.id}>")
-                                break
+                mention = message[index + 1:]
+                for chan in self.bot.chat_channels_obj:
+                    for ind in range(0, min(len(mention) + 1, 32)):
+                        member = lightbulb.utils.find(chan.members, lambda m: m.username == mention[:ind] or
+                                                                              m.nickname == mention[:ind])
+                        if member:
+                            message = message.replace("@" + mention[:ind], f"<@{member.id}>")
+                            break
             except Exception as e:
                 self.bot.bprint("ERROR | Server2Guild Mentions Exception caught: " + str(e))
                 pass
-        return message
+            return message
 
     def remove_nestings(self, iterable):
         output = []
@@ -132,6 +129,9 @@ class MinecraftServer(BaseServer):
             try:
                 msg = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
                                               timeout=5)
+            except asyncio.exceptions.TimeoutError:
+                continue
+            try:
                 if not hasattr(msg, 'author') or (hasattr(msg, 'author') and msg.author.is_bot):
                     pass
                 elif msg.content:
@@ -174,8 +174,6 @@ class MinecraftServer(BaseServer):
                         await chan.send("Message failed to send; the bot is broken, tag Evan",
                                         delete_after=10)
                 continue
-            except asyncio.exceptions.TimeoutError:
-                pass
             except Exception as e:
                 self.bot.bprint("guild2server catchall:")
                 print(type(e))
@@ -203,13 +201,9 @@ class MinecraftServer(BaseServer):
                     stats = server.query()
                     version, online, max_p = stats.software.version, stats.players.online, stats.players.max
                 player_count = f"({online}/{max_p} players)" if not failed else ""
-                cur_status = f"""Playing: Minecraft {version} {player_count}
-{'[' if names else ''}{', '.join(names)}{']' if names else ''}"""
-                for chan in self.bot.chat_channels_obj:
-                    await chan.edit(topic=cur_status)
-                # await self.bot.set_bot_status(f'{self.bot.game} {version}', mod_count, player_count)
-                await self.bot.update_presence(
-                    activity=hikari.Activity(name=f'{self.bot.game} {version} {mod_count} {player_count}'), type=0)
+                cur_status = f"Minecraft {version} {player_count} {'[' if names else ''}{', '.join(names)}{']' if names else ''}"
+                await self.bot.add_game_chat_info(cur_status)
+                await self.bot.add_game_presence(self.name, f'{self.bot.game} {version} {mod_count} {player_count}')
             except BrokenPipeError:
                 self.bot.bprint("Server running a MC version <1.7, or is still starting. (BrokenPipeError)")
                 await self.sleep_with_backoff(tries)

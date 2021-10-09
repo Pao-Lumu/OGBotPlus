@@ -4,47 +4,30 @@ import re
 from os import path
 from pathlib import Path
 from subprocess import PIPE, DEVNULL
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union
 
 import psutil
 import toml
 
-valid_ports = [22221, 22222, 22223, 22224, 22225]
+
+def are_servers_running(ports: List[int]) -> bool:
+    for p in psutil.process_iter(attrs=['connections']):
+        if not p.info['connections']:
+            continue
+        for x in p.info['connections']:
+            if x.laddr.port in ports:
+                return True
+    else:
+        return False
 
 
-def get_running() -> List[Tuple[int, psutil.Process]]:
-    try:
-        if psutil.WINDOWS:
-            for p in psutil.process_iter(attrs=['connections']):
-                for x in p.info['connections']:
-                    if x.laddr.port in valid_ports:
-                        return p
-                else:
-                    continue
-            else:
-                raise ProcessLookupError('Process not running')
-        elif psutil.LINUX:
-            ps: psutil.Popen = psutil.Popen(r"/usr/sbin/ss -tulpn | grep -P :2222\d*", shell=True,
-                                            stdout=PIPE, stderr=DEVNULL)
-            raw = ps.stdout.read().decode("utf-8")
-            pids = re.findall(r'(2222\d).*(?<=pid=)(\d+)', raw)
-            pids.sort()
-            procs = []
-            used_pids = []
-            for port, pid in pids:
-                proc = psutil.Process(pid=int(pid))
-                if proc.username() == psutil.Process().username() and pid not in used_pids:
-                    used_pids.append(pid)
-                    procs.append((int(port), proc))
-
-            # procs = [(port, proc) for port, proc in [(int(port), psutil.Process(pid=int(x))) for port, x in pids] if
-            #          proc.username() == psutil.Process().username() and int(port) in valid_ports]
-            if not procs:
-                raise ProcessLookupError('Process not running or not accessible by bot.')
-            else:
-                return procs
-    except AttributeError:
-        print('Oh no')
+def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
+    running_procs = []
+    for p in psutil.process_iter(attrs=['connections']):
+        if not p.info['connections']:
+            continue
+        running_procs.extend([(x.laddr.port, p) for x in p.info['connections'] if x.laddr.port in ports])
+    return list(set(running_procs))
 
 
 def is_lgsm(proc: psutil.Process) -> bool:
@@ -73,13 +56,11 @@ def find_root_directory(start_dir: str) -> str:
                 print("Hey... This isn't supposed to happen...")
 
 
-def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
+def get_game_info(process: psutil.Process) -> Dict:
     try:
         cwd = process.cwd()
     except ProcessLookupError:
         raise ProcessLookupError('Process not running or not accessible by bot.')
-    except AttributeError:
-        return None, None
     root = find_root_directory(cwd)
     toml_path = path.join(root, '.gameinfo.toml')
     defaults = {'name': Path(root).name,
@@ -142,7 +123,7 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
             raise toml.TomlDecodeError
         except Exception as e:
             print(f"Exception {type(e)}: {e}")
-        return process, game_info
+        return game_info
     else:
         try:
             # if the TOML file doesn't exist, create it, load defaults, and save
@@ -157,4 +138,4 @@ def get_game_info(process: psutil.Process) -> Tuple[psutil.Process, Dict]:
         except Exception as e:
             print(f"Exception {type(e)}: {e}")
 
-        return process, defaults
+        return defaults

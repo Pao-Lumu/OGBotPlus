@@ -8,22 +8,24 @@ import psutil
 class BaseServer:
     def __init__(self, bot, process: psutil.Process, **kwargs):
         self.bot = bot
-        self.proc = process
-        self.name = kwargs.pop('name', 'a game')
-        self.ip = kwargs.pop('ip', '127.0.0.1')
-        self.port = int(kwargs.pop('port', 22222))
-        self.password = kwargs.pop('rcon_password') if kwargs.get('rcon_password') else kwargs.pop(
+        self.proc: psutil.Process = process
+        self.name: str = kwargs.pop('name', 'a game')
+        self.ip: str = kwargs.pop('ip', '127.0.0.1')
+        self.port: int = int(kwargs.pop('port', 22222))
+        self.password: str = kwargs.pop('rcon_password') if kwargs.get('rcon_password') else kwargs.pop(
             'rcon') if kwargs.get('rcon') else self.bot.cfg["default_rcon_password"]
-        self.working_dir = kwargs.pop('folder', '')
-        self._repr = "a game"
+        self.working_dir: str = kwargs.pop('folder', '')
+        self._repr: str = "a game"
+        self.loop = asyncio.get_running_loop()
 
-        self.rcon_port = kwargs.pop('rcon_port', 22232)
+        self.rcon_port: int = int(kwargs.pop('rcon_port', 22232))
         self.rcon = None
         self.rcon_lock = asyncio.Lock()
-        self.last_reconnect = datetime.datetime(1, 1, 1)
+        self.last_reconnect: datetime.datetime = datetime.datetime(1, 1, 1)
 
         if self.__class__.__name__ == 'BaseServer':
-            self.bot.loop.create_task(self.update_server_information())
+            self.loop.create_task(self.update_server_information())
+            asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
 
     def __repr__(self):
         return self._repr
@@ -41,12 +43,11 @@ class BaseServer:
         pass
 
     async def update_server_information(self):
-        await self.bot.update_presence(activity=hikari.Activity(name=self.name, type=0))
+        await self.bot.add_game_presence(self.name, self.name)
 
-    async def sleep_with_backoff(self, tries, wait_time=5):
+    @staticmethod
+    async def sleep_with_backoff(tries, wait_time=5):
         await asyncio.sleep(wait_time * tries)
-        # if self.bot.debug:
-        #     self.bot.bprint("sleep_with_backoff ~ Done waiting for backoff")
 
     @property
     def status(self) -> psutil.Process:
@@ -62,3 +63,18 @@ class BaseServer:
                 return True
         else:
             return False
+
+    def wait_or_when_cancelled(self):
+        while True:
+            try:
+                self.proc.wait(timeout=1)
+                self.teardown()
+            except psutil.TimeoutExpired:
+                continue
+            except KeyboardInterrupt:
+                self.teardown()
+                break
+
+    def teardown(self):
+        self.bot.games.pop(str(self.port))
+        asyncio.ensure_future(self.bot.remove_game_presence(self.name))
