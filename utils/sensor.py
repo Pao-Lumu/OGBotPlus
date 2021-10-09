@@ -26,8 +26,10 @@ def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
     for p in psutil.process_iter(attrs=['connections']):
         if not p.info['connections']:
             continue
-        for x in p.info['connections']:
-            if x.laddr.port in ports and p not in running_procs:
+        connections = [y.laddr.port for y in p.info['connections']]
+        connections.sort()
+        for x in connections:
+            if x in ports and p not in [p for _, p in running_procs]:
                 running_procs.append((x.laddr.port, p))
     return running_procs
 
