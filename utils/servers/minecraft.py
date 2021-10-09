@@ -104,15 +104,16 @@ class MinecraftServer(BaseServer):
                 mention = message[index + 1:]
                 for chan in self.bot.chat_channels_obj:
                     for ind in range(0, min(len(mention) + 1, 32)):
-                        member = lightbulb.utils.find(chan.members, lambda m: m.username == mention[:ind] or
-                                                                              m.nickname == mention[:ind])
+                        member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members(),
+                                                      lambda m: m.username == mention[:ind] or
+                                                                m.nickname == mention[:ind])
                         if member:
                             message = message.replace("@" + mention[:ind], f"<@{member.id}>")
                             break
             except Exception as e:
                 self.bot.bprint("ERROR | Server2Guild Mentions Exception caught: " + str(e))
                 pass
-            return message
+        return message
 
     def remove_nestings(self, iterable):
         output = []
