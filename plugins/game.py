@@ -49,7 +49,6 @@ class Game(lightbulb.Plugin):
 
     async def server_running_loop(self):
         known_running_servers = []
-        print("started server_running_loop")
         print(self.bot.is_alive)
         while self.bot.is_alive:
             any_server_running = sensor.are_servers_running(self.ports)
@@ -57,20 +56,17 @@ class Game(lightbulb.Plugin):
             if any_server_running and self.bot.is_game_running:
                 running_servers = sensor.get_running_procs(self.ports)
                 new_servers = [(port, server) for port, server in running_servers if
-                               server not in known_running_servers]
-                print("2nd if statment")
-                print(running_servers)
+                               server.pid not in known_running_servers]
                 if not new_servers:
-                    print("waiting...")
                     await asyncio.sleep(2)
                     continue
-                for port, server in running_servers:
+                for port, server in new_servers:
                     data = sensor.get_game_info(server)
                     self.bot.games[str(port)] = generate_server_object(bot=self.bot,
                                                                        process=server,
                                                                        gameinfo=data)
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
-                known_running_servers = running_servers
+                known_running_servers = [x.pid for _, x in running_servers]
                 continue
             elif any_server_running and not self.bot.is_game_running:
                 self.bot._game_stopped.clear()
