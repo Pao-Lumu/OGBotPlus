@@ -30,8 +30,8 @@ class Game(lightbulb.Plugin):
         logging.debug("starting game plugin")
         if not self.loop:
             self.loop = asyncio.get_running_loop()
-            asyncio.create_task(self.bot.set_game_presence())
-            asyncio.create_task(self.bot.set_game_chat_info())
+            # asyncio.create_task(self.bot.set_game_presence())
+            # asyncio.create_task(self.bot.set_game_chat_info())
         if not self.check_server:
             self.check_server = self.loop.create_task(self.server_running_loop())
 
@@ -81,12 +81,12 @@ def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
     executable = gameinfo['executable'].lower()
     if 'srcds' in executable:
         return source.SourceServer(bot, process, **gameinfo)
-    # elif gameinfo['game'] == "minecraft" \
-    #         or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
-    #             or 'server.jar' in ' '.join(gameinfo['command'])
-    #             or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
-    #     print("Found Minecraft")
-    #     return minecraft.MinecraftServer(bot, process, **gameinfo)
+    elif gameinfo['game'] == "minecraft" \
+            or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
+                or 'server.jar' in ' '.join(gameinfo['command'])
+                or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
+        print("Found Minecraft")
+        return minecraft.MinecraftServer(bot, process, **gameinfo)
     elif 'valheim_server' in executable:
         return valheim.ValheimServer(bot, process, **gameinfo)
     elif 'terraria' in executable:
