@@ -49,7 +49,6 @@ class OGBotPlus(lightbulb.Bot, ABC):
         while True:
             await asyncio.sleep(3)
             if not self.game_statuses.keys():
-                print('nothing')
                 continue
             presences = [v for k, v in self.game_statuses.items()]
             activity = hikari.Activity(name="; ".join(presences))
@@ -69,15 +68,11 @@ class OGBotPlus(lightbulb.Bot, ABC):
         while True:
             await asyncio.sleep(3)
             if not self.game_statuses.keys():
-                print('nothing')
                 continue
-            print(self.game_chat_info)
             info = [v for k, v in self.game_chat_info.items()]
-            print(info)
             try:
                 print(self.chat_channels_obj)
                 for chan in self.chat_channels_obj:
-                    print(chan.id)
                     await chan.edit(topic="Playing: " + "; ".join(info))
             except Exception as e:
                 print(e)
