@@ -68,6 +68,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
         while True:
             await asyncio.sleep(15)
             if not self.game_statuses.keys():
+                print('nothing')
                 continue
             info = [v for k, v in self.game_chat_info]
             try:
