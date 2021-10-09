@@ -66,7 +66,15 @@ class BaseServer:
             return False
 
     async def wait_for_death(self):
-        await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
+        x = True
+        proc = await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
+        while x:
+            print(proc.returncode)
+            if not proc.returncode:
+                await asyncio.sleep(5)
+            else:
+                await asyncio.sleep(3)
+                x = False
         self.teardown()
 
     def teardown(self):
