@@ -5,7 +5,7 @@ import sys
 def wait_or_when_cancelled(pid):
     print(pid)
     print(type(pid))
-    proc = psutil.Process(pid=pid)
+    proc = psutil.Process(pid=int(pid))
     while True:
         try:
             proc.wait(timeout=1)
