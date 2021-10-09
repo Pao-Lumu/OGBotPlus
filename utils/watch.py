@@ -17,4 +17,4 @@ def wait_or_when_cancelled(pid):
             exit(0)
 
 
-wait_or_when_cancelled(sys.argv[0])
+wait_or_when_cancelled(sys.argv[1])
