@@ -113,10 +113,10 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
 
 
-@bot.listen(hikari.ExceptionEvent)
-async def on_command_error(event: hikari.ExceptionEvent):
-    logging.warning(exc_info=event.exc_info)
-    pass
+# @bot.listen(hikari.ExceptionEvent)
+# async def on_command_error(event: hikari.ExceptionEvent):
+#     logging.warning(exc_info=event.exc_info)
+#     pass
 
 plugins = [
     Warframe,
