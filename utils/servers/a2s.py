@@ -21,7 +21,7 @@ class A2SCompatibleServer(BaseServer):
 
                 cur_p = info.player_count
                 chat_status = f"{self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
-                self.bot.add_game_chat_info(self.name, chat_status)
+                await self.bot.add_game_chat_info(self.name, chat_status)
                 status = f"""
 {self.readable_name}
 ({cur_p} player{'s' if cur_p != 1 else ''} online)

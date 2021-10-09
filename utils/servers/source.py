@@ -120,7 +120,7 @@ class SourceServer(A2SCompatibleServer):
                 cur_p = info.player_count
                 max_p = info.max_players
                 cur_status = f"Playing: {self.readable_name} - {mode} on map {cur_map} ({cur_p}/{max_p} players)"
-                self.bot.add_game_chat_info(self.name, cur_status)
+                await self.bot.add_game_chat_info(self.name, cur_status)
                 status = f"""
 {self.readable_name} 
 ({cur_p} player{'s' if cur_p != 1 else ''}) 

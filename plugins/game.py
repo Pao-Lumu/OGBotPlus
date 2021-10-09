@@ -49,7 +49,6 @@ class Game(lightbulb.Plugin):
 
     async def server_running_loop(self):
         known_running_servers = []
-        print(self.bot.is_alive)
         while self.bot.is_alive:
             any_server_running = sensor.are_servers_running(self.ports)
             print(any_server_running)
