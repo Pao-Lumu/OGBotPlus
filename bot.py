@@ -7,6 +7,7 @@ import sys
 import hikari
 import pyfiglet
 import toml
+import lightbulb
 
 from OGBotPlus import OGBotPlus
 from plugins.santa import Santa
@@ -112,10 +113,10 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
 
 
-# @bot.listen(lightbulb.CommandErrorEvent)
-# async def on_command_error(event: lightbulb.CommandErrorEvent):
-#     logging.warning(event.command.name, exc_info=event.exc_info)
-#     pass
+@bot.listen(lightbulb.CommandErrorEvent)
+async def on_command_error(event: lightbulb.CommandErrorEvent):
+    logging.warning(event.command.name, exc_info=event.exc_info)
+    pass
 
 plugins = [
     Warframe,
