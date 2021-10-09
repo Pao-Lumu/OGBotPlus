@@ -202,7 +202,7 @@ class MinecraftServer(BaseServer):
                     version, online, max_p = stats.software.version, stats.players.online, stats.players.max
                 player_count = f"({online}/{max_p} players)" if not failed else ""
                 cur_status = f"Minecraft {version} {player_count} {'[' if names else ''}{', '.join(names)}{']' if names else ''}"
-                await self.bot.add_game_chat_info(cur_status)
+                await self.bot.add_game_chat_info(self.name, cur_status)
                 await self.bot.add_game_presence(self.name, f'{self.bot.game} {version} {mod_count} {player_count}')
             except BrokenPipeError:
                 self.bot.bprint("Server running a MC version <1.7, or is still starting. (BrokenPipeError)")
