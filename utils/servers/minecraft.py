@@ -135,7 +135,7 @@ class MinecraftServer(BaseServer):
                     pass
                 elif msg.content:
                     await self._rcon_connect()
-                    content = regex.sub(r'<(:\w+:)\d+>', r'\1', msg.clean_content).split('\n')  # split on msg newlines
+                    content = regex.sub(r'<(:\w+:)\d+>', r'\1', msg.content).split('\n')  # split on msg newlines
                     long = False
                     for index, line in enumerate(content):
                         data = f"§9§l{msg.author.username}§r: {line}"

@@ -89,18 +89,18 @@ class SourceServer(A2SCompatibleServer):
                     msg = await self.bot.wait_for(GuildMessageCreateEvent, predicate=self.is_chat_channel, timeout=5)
                     if not hasattr(msg, 'author') or (hasattr(msg, 'author') and msg.author.is_bot):
                         pass
-                    elif msg.clean_content:
+                    elif msg.content:
                         i = len(msg.author.username)
                         # if message is longer than 200-some characters
-                        if len(msg.clean_content) > 230 - i:
-                            wrapped = tw.wrap(msg.clean_content, width=230 - i,
+                        if len(msg.content) > 230 - i:
+                            wrapped = tw.wrap(msg.content, width=230 - i,
                                               initial_indent=f"{msg.author.username}: ")
                             for wrapped_line in wrapped:
                                 rcon(f"say |D> {wrapped_line}")
                         # elif shorter than 200-some characters
                         else:
-                            rcon(f"say |D> {msg.author.username}: {msg.clean_content}")
-                        self.bot.bprint(f"Discord | <{msg.author.username}>: {msg.clean_content}")
+                            rcon(f"say |D> {msg.author.username}: {msg.content}")
+                        self.bot.bprint(f"Discord | <{msg.author.username}>: {msg.content}")
                     if msg.attachments:
                         rcon.command(f"say |D> {msg.author.username}: Image {msg.attachments[0]['filename']}")
                         self.bot.bprint(
