@@ -23,14 +23,15 @@ def are_servers_running(ports: List[int]) -> bool:
 
 def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
     running_procs = []
+    temp = []
     for p in psutil.process_iter(attrs=['connections']):
         if not p.info['connections']:
             continue
         connections = [y.laddr.port for y in p.info['connections']]
         connections.sort()
         for x in connections:
-            if x in ports and p not in [p for _, p in running_procs]:
-                running_procs.append((x.laddr.port, p))
+            if x in ports and p not in [p for _, p in temp]:
+                running_procs.append((x, p))
     return running_procs
 
 
