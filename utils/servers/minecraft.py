@@ -89,7 +89,8 @@ class MinecraftServer(BaseServer):
                 if msgs:
                     x = "\n".join(msgs)
                     for chan in self.bot.chat_channels_obj:
-                        await chan.send(x)
+                        # await chan.send(x)
+                        print(x)
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
@@ -104,7 +105,7 @@ class MinecraftServer(BaseServer):
                 mention = message[index + 1:]
                 for chan in self.bot.chat_channels_obj:
                     for ind in range(0, min(len(mention) + 1, 32)):
-                        member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members(),
+                        member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members().items(),
                                                       lambda _, m: m.username == mention[:ind] or
                                                                 m.nickname == mention[:ind])
                         if member:
