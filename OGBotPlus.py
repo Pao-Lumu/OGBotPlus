@@ -71,6 +71,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
                 print('nothing')
                 continue
             info = [v for k, v in self.game_chat_info]
+            print(info)
             try:
                 for chan in self.chat_channels_obj:
                     await chan.edit(topic="Playing: " + "; ".join(info))
