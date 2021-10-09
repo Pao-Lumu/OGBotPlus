@@ -34,7 +34,6 @@ class Game(lightbulb.Plugin):
         if not self.check_server:
             self.check_server = self.loop.create_task(self.server_running_loop())
 
-
     @lightbulb.listener(hikari.GuildMessageCreateEvent)
     async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
         if event.author.is_bot:
