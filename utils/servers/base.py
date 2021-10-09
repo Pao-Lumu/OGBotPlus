@@ -69,7 +69,7 @@ class BaseServer:
         x = True
         proc = await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
         while x:
-            if not proc.returncode:
+            if proc.returncode == 0:
                 await asyncio.sleep(5)
             else:
                 await asyncio.sleep(3)
@@ -77,7 +77,7 @@ class BaseServer:
         self.teardown()
 
     def teardown(self):
-        self.bot.games.pop(str(self.port))
+        self.bot.games.pop(str(self.port), None)
         asyncio.ensure_future(self.bot.remove_game_presence(self.name))
         asyncio.ensure_future(self.bot.remove_game_chat_info(self.name))
         logging.critical('teardown successful!')
