@@ -70,6 +70,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
             if not self.game_statuses.keys():
                 print('nothing')
                 continue
+            print(self.game_chat_info)
             info = [v for k, v in self.game_chat_info]
             print(info)
             try:
