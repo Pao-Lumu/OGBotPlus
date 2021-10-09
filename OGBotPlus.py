@@ -72,7 +72,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
                 print('nothing')
                 continue
             print(self.game_chat_info)
-            info = [v for k, v in self.game_chat_info]
+            info = [v for k, v in self.game_chat_info.items()]
             print(info)
             try:
                 print(self.chat_channels_obj)

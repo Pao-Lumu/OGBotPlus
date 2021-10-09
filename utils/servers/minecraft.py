@@ -26,10 +26,9 @@ class MinecraftServer(BaseServer):
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
+        self.loop.create_task(self.wait_for_death())
         self.motd: str = kwargs.pop('motd', "A Minecraft Server")
         self._repr = "Minecraft"
-
-        self.loop.create_task(self.wait_for_death())
 
     async def _rcon_connect(self):
         if not self.rcon:
