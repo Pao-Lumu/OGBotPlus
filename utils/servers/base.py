@@ -69,7 +69,8 @@ class BaseServer:
         x = True
         proc = await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
         while x:
-            if proc.returncode == 0:
+            print(proc.returncode)
+            if proc.returncode is None:
                 await asyncio.sleep(5)
             else:
                 await asyncio.sleep(3)
