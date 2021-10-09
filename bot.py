@@ -113,9 +113,9 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""")
 
 
-@bot.listen(lightbulb.CommandErrorEvent)
-async def on_command_error(event: lightbulb.CommandErrorEvent):
-    logging.warning(event.command.name, exc_info=event.exc_info)
+@bot.listen(hikari.ExceptionEvent)
+async def on_command_error(event: hikari.ExceptionEvent):
+    logging.warning(exc_info=event.exc_info)
     pass
 
 plugins = [
