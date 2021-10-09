@@ -129,8 +129,11 @@ class MinecraftServer(BaseServer):
                 msg = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
                                               timeout=5)
             except asyncio.exceptions.TimeoutError:
+                print("waiting")
                 continue
             try:
+                print("we got a message!")
+                print(msg.content)
                 if not hasattr(msg, 'author') or (hasattr(msg, 'author') and msg.author.is_bot):
                     pass
                 elif msg.content:
