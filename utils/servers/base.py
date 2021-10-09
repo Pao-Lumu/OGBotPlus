@@ -3,6 +3,7 @@ import datetime
 
 import hikari
 import psutil
+import logging
 
 
 class BaseServer:
@@ -78,3 +79,5 @@ class BaseServer:
     def teardown(self):
         self.bot.games.pop(str(self.port))
         asyncio.ensure_future(self.bot.remove_game_presence(self.name))
+        asyncio.ensure_future(self.bot.remove_game_chat_info(self.name))
+        logging.critical('teardown successful!')
