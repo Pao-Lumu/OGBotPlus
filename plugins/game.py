@@ -70,15 +70,13 @@ class Game(lightbulb.Plugin):
                 self.bot._game_running.set()
 
                 running_servers = sensor.get_running_procs(self.ports)
-                print("2nd if statment")
-                print(running_servers)
                 for port, server in running_servers:
                     data = sensor.get_game_info(server)
                     self.bot.games[str(port)] = generate_server_object(bot=self.bot,
                                                                        process=server,
                                                                        gameinfo=data)
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
-                known_running_servers = running_servers
+                known_running_servers = [x.pid for _, x in running_servers]
             elif not any_server_running and self.bot.is_game_running:
                 self.bot._game_running.clear()
                 self.bot._game_stopped.set()
