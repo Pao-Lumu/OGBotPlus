@@ -26,7 +26,7 @@ class BaseServer:
 
         if self.__class__.__name__ == 'BaseServer':
             self.loop.create_task(self.update_server_information())
-            asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
+            self.loop.create_task(self.wait_for_death())
 
     def __repr__(self):
         return self._repr
@@ -65,16 +65,9 @@ class BaseServer:
         else:
             return False
 
-    def wait_or_when_cancelled(self):
-        while True:
-            try:
-                self.proc.wait(timeout=1)
-                self.teardown()
-            except psutil.TimeoutExpired:
-                continue
-            except KeyboardInterrupt:
-                self.teardown()
-                break
+    async def wait_for_death(self):
+        await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
+        self.teardown()
 
     def teardown(self):
         self.bot.games.pop(str(self.port))

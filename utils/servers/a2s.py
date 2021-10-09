@@ -13,6 +13,7 @@ class A2SCompatibleServer(BaseServer):
         self._repr = "A2S-Compatible Server"
         self.query_port = kwargs.setdefault('query_port', self.port)
         self.readable_name = kwargs.setdefault('name', 'A2S-Compatible Server')
+        self.loop.create_task(self.wait_for_death())
 
     async def update_server_information(self):
         while self.proc.is_running() and self.bot.is_alive:

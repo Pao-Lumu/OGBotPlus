@@ -29,7 +29,7 @@ class MinecraftServer(BaseServer):
         self.motd: str = kwargs.pop('motd', "A Minecraft Server")
         self._repr = "Minecraft"
 
-        asyncio.ensure_future(self.loop.run_in_executor(None, self.wait_or_when_cancelled))
+        self.loop.create_task(self.wait_for_death())
 
     async def _rcon_connect(self):
         if not self.rcon:
