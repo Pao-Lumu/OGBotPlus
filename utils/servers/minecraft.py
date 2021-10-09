@@ -105,7 +105,7 @@ class MinecraftServer(BaseServer):
                 for chan in self.bot.chat_channels_obj:
                     for ind in range(0, min(len(mention) + 1, 32)):
                         member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members(),
-                                                      lambda m: m.username == mention[:ind] or
+                                                      lambda _, m: m.username == mention[:ind] or
                                                                 m.nickname == mention[:ind])
                         if member:
                             message = message.replace("@" + mention[:ind], f"<@{member.id}>")
