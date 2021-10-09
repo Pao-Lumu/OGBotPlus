@@ -51,10 +51,12 @@ class Game(lightbulb.Plugin):
         known_running_servers = []
         while self.bot.is_alive:
             any_server_running = sensor.are_servers_running(self.ports)
+            print(any_server_running)
             if any_server_running:
                 if not self.bot.is_game_running:
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
+                print(any_server_running)
                 running_servers = sensor.get_running_procs(self.ports)
                 new_servers = [(port, server) for port, server in running_servers if
                                server.pid not in known_running_servers]
