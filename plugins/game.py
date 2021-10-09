@@ -44,7 +44,8 @@ class Game(lightbulb.Plugin):
                 for chan in self.bot.chat_channels_obj:
                     if chan.id != event.channel_id:
                         await chan.send(
-                            f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}")
+                            f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}",
+                            user_mentions=event.message.mentions.user_ids)
             else:
                 await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
 
