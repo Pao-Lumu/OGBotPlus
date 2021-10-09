@@ -32,6 +32,10 @@ sh.setFormatter(fmt)
 sh.setLevel(logging.DEBUG)
 log.addHandler(sh)
 
+discord_logger = logging.getLogger('hikari')
+discord_logger.setLevel(logging.DEBUG)
+discord_logger.addHandler(sh)
+
 log_path = os.path.join("logs", "ogbot.log")
 if not os.path.exists(log_path):
     os.makedirs("logs", exist_ok=True)
@@ -40,6 +44,7 @@ if not os.path.exists(log_path):
 
 fh = logging.handlers.TimedRotatingFileHandler(filename=log_path, when="midnight", encoding='utf-8')
 fh.setFormatter(fmt)
+discord_logger.addHandler(fh)
 log.addHandler(fh)
 
 log = logging.getLogger()
@@ -116,7 +121,7 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 plugins = [
     Warframe,
     Santa,
-    # Game,
+    Game,
     Memes,
     Chat,
     Activity,
@@ -124,4 +129,6 @@ plugins = [
 
 for plugin in plugins:
     bot.add_plugin(plugin(bot))
+    print(plugin.__name__)
+    print('Loaded!')
 bot.run()

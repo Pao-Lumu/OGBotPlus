@@ -17,7 +17,7 @@ class Game(lightbulb.Plugin):
 
     def __init__(self, bot: OGBotPlus):
         if psutil.WINDOWS:
-            bot.bprint("(Game Plugin) | Windows might be compatible sometimes, but is not supported as a server host.")
+            print("(Game Plugin) | Windows might be compatible sometimes, but is not supported as a server host.")
         self.bot = bot
         self.loop = None
         self.check_server = None
