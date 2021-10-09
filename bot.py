@@ -33,7 +33,7 @@ sh.setLevel(logging.CRITICAL)
 log.addHandler(sh)
 
 discord_logger = logging.getLogger('hikari')
-discord_logger.setLevel(logging.DEBUG)
+discord_logger.setLevel(logging.CRITICAL)
 discord_logger.addHandler(sh)
 
 log_path = os.path.join("logs", "ogbot.log")
