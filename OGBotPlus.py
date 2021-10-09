@@ -83,13 +83,14 @@ class OGBotPlus(lightbulb.Bot, ABC):
             info = [v for k, v in self.game_chat_info.items()]
             try:
                 for chan in self.chat_channels_obj:
-                    await chan.edit(topic="Playing: " + "; ".join(info))
+                    topic = "Playing: " + "; ".join(info)
+                    await chan.edit(topic=topic)
                     await asyncio.sleep(1.5)
                 topic_set = True
             except Exception as e:
                 print(e)
             finally:
-                await asyncio.sleep(120)
+                await asyncio.sleep(320)
 
     @property
     def loop(self):
