@@ -90,7 +90,7 @@ class MinecraftServer(BaseServer):
                     x = "\n".join(msgs)
                     for chan in self.bot.chat_channels_obj:
                         chan: hikari.GuildTextChannel
-                        await chan.send(x, user_mentions=[mentioned_users])
+                        await chan.send(x, user_mentions=mentioned_users)
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
