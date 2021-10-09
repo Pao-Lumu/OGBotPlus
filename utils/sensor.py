@@ -29,7 +29,7 @@ def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
         for x in p.info['connections']:
             if x.laddr.port in ports and p not in running_procs:
                 running_procs.append((x.laddr.port, p))
-    return list(set(running_procs))
+    return running_procs
 
 
 def is_lgsm(proc: psutil.Process) -> bool:
