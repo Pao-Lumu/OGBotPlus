@@ -89,8 +89,7 @@ class MinecraftServer(BaseServer):
                 if msgs:
                     x = "\n".join(msgs)
                     for chan in self.bot.chat_channels_obj:
-                        # await chan.send(x)
-                        print(x)
+                        await chan.send(x)
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
