@@ -2,7 +2,7 @@
 
 # from utils import helpers
 import asyncio
-import functools
+import logging
 
 import lightbulb
 import psutil
@@ -27,6 +27,7 @@ class Game(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.ShardReadyEvent)
     async def on_start(self, _):
+        logging.debug("starting game plugin")
         if not self.loop:
             self.loop = asyncio.get_running_loop()
             asyncio.create_task(self.bot.set_game_presence())
