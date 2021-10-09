@@ -87,8 +87,8 @@ def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
         return minecraft.MinecraftServer(bot, process, **gameinfo)
     elif 'srcds' in executable:
         return source.SourceServer(bot, process, **gameinfo)
-    elif 'valheim_server' in executable:
-        return valheim.ValheimServer(bot, process, **gameinfo)
+    # elif 'valheim_server' in executable:
+    #     return valheim.ValheimServer(bot, process, **gameinfo)
     elif 'terraria' in executable:
         pass  # nyi
     else:
