@@ -7,7 +7,7 @@ import sys
 import hikari
 import pyfiglet
 import toml
-import lightbulb
+# import lightbulb
 
 from OGBotPlus import OGBotPlus
 from plugins.santa import Santa
