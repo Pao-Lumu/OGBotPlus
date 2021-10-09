@@ -66,7 +66,6 @@ class Game(lightbulb.Plugin):
                                                                        gameinfo=data)
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
                 known_running_servers = [x.pid for _, x in running_servers]
-                continue
             elif any_server_running and not self.bot.is_game_running:
                 self.bot._game_stopped.clear()
                 self.bot._game_running.set()
@@ -81,13 +80,10 @@ class Game(lightbulb.Plugin):
                                                                        gameinfo=data)
                     self.bot.bprint(f"Server Status | Now Playing: {data['name']}")
                 known_running_servers = running_servers
-                continue
             elif not any_server_running and self.bot.is_game_running:
                 self.bot._game_running.clear()
                 self.bot._game_stopped.set()
-            # just wait for a bit and continue
             await asyncio.sleep(5)
-            continue
 
 
 def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
