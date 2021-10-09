@@ -30,8 +30,8 @@ class Game(lightbulb.Plugin):
         logging.debug("starting game plugin")
         if not self.loop:
             self.loop = asyncio.get_running_loop()
-            # asyncio.create_task(self.bot.set_game_presence())
-            # asyncio.create_task(self.bot.set_game_chat_info())
+            asyncio.ensure_future(self.bot.set_game_presence())
+            asyncio.ensure_future(self.bot.set_game_chat_info())
         if not self.check_server:
             self.check_server = self.loop.create_task(self.server_running_loop())
 
