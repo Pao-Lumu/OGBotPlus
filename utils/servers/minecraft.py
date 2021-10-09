@@ -79,7 +79,7 @@ class MinecraftServer(BaseServer):
                     raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
                     if raw_player_msg:
-                        x = self.check_for_mentions(raw_player_msg[0])
+                        mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
                         msgs.append(x)
                         # pass
                     elif raw_server_msg:
@@ -89,7 +89,8 @@ class MinecraftServer(BaseServer):
                 if msgs:
                     x = "\n".join(msgs)
                     for chan in self.bot.chat_channels_obj:
-                        await chan.send(x)
+                        chan: hikari.GuildTextChannel
+                        await chan.send(x, user_mentions=[mentioned_users])
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
@@ -97,8 +98,9 @@ class MinecraftServer(BaseServer):
                     break
                 await asyncio.sleep(.75)
 
-    def check_for_mentions(self, message: str) -> str:
+    def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
         indexes: List[int] = [m.start() for m in regex.finditer('@', message)]
+        mentioned_members = []
         for index in indexes:
             try:
                 mention = message[index + 1:]
@@ -108,12 +110,14 @@ class MinecraftServer(BaseServer):
                                                       lambda m: m.username == mention[:ind] or
                                                                 m.nickname == mention[:ind])
                         if member:
+                            mentioned_members.append(member)
                             message = message.replace("@" + mention[:ind], f"<@{member.id}>")
                             break
+
             except Exception as e:
                 self.bot.bprint("ERROR | Server2Guild Mentions Exception caught: " + str(e))
                 pass
-        return message
+        return mentioned_members, message
 
     def remove_nestings(self, iterable):
         output = []
