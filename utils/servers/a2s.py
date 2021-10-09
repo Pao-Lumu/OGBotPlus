@@ -36,4 +36,5 @@ Mem: {round(self.proc.memory_percent(), 2)}%
                 print("No Response from server before timeout (NoResponseError)")
             except Exception as e:
                 print(f"Error: {e} {type(e)}")
-            await asyncio.sleep(30)
+            finally:
+                await asyncio.sleep(30)

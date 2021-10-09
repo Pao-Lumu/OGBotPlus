@@ -15,7 +15,3 @@ class ValheimServer(A2SCompatibleServer):
         self.readable_name = kwargs.setdefault('name', 'Valheim Server')
 
         self.loop.create_task(self.wait_for_death())
-
-    def teardown(self):
-        # self.bot.games.pop(str(self.query_port), None)
-        super().teardown()

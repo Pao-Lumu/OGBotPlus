@@ -29,6 +29,7 @@ class MinecraftServer(BaseServer):
         self.bot.loop.create_task(self.wait_for_death())
         self.motd: str = kwargs.pop('motd', "A Minecraft Server")
         self._repr = "Minecraft"
+        print("Loaded minecraft")
 
     async def _rcon_connect(self):
         if not self.rcon:
