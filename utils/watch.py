@@ -3,6 +3,8 @@ import sys
 
 
 def wait_or_when_cancelled(pid):
+    print(pid)
+    print(type(pid))
     proc = psutil.Process(pid=pid)
     while True:
         try:
