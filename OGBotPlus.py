@@ -51,7 +51,7 @@ class OGBotPlus(lightbulb.Bot, ABC):
             if not self.game_statuses.keys():
                 print('nothing')
                 continue
-            presences = [v for k, v in self.game_statuses]
+            presences = [v for k, v in self.game_statuses.items()]
             activity = hikari.Activity(name="; ".join(presences))
             try:
                 await self.update_presence(activity=activity)
