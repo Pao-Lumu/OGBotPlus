@@ -75,7 +75,7 @@ class SourceServer(A2SCompatibleServer):
                     for chan in self.bot.chat_channels_obj:
                         await chan.send(x)
                 for msg in msgs:
-                    self.bot.bprint(f"{self.bot.game} | {''.join(msg)}")
+                    self.bot.bprint(f"{self.bot.games[str(self.port)]} | {''.join(msg)}")
                 continue
             except Exception as e:
                 print(f"Caught Unexpected {type(e)}: ({str(e)}) (Source Server Game2Guild)")
