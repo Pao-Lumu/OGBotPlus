@@ -29,7 +29,7 @@ class A2SCompatibleServer(BaseServer):
 CPU: {self.proc.cpu_percent()}%
 Mem: {round(self.proc.memory_percent(), 2)}%
 """
-                await self.bot.add_game_presence(self.name, activity=hikari.Activity(name=status, type=0))
+                await self.bot.add_game_presence(self.name, name=status)
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
             except valve.source.a2s.NoResponseError:
