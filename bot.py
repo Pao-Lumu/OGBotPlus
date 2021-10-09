@@ -127,8 +127,6 @@ plugins = [
     Activity,
 ]
 
-for plugin in plugins:
-    bot.add_plugin(plugin(bot))
-    print(plugin.__name__)
-    print('Loaded!')
+
+[bot.add_plugin(plugin(bot)) for plugin in plugins]
 bot.run()

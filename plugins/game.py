@@ -83,7 +83,6 @@ def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
             or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
                 or 'server.jar' in ' '.join(gameinfo['command'])
                 or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
-        print("Found Minecraft")
         return minecraft.MinecraftServer(bot, process, **gameinfo)
     elif 'valheim_server' in executable:
         return valheim.ValheimServer(bot, process, **gameinfo)
