@@ -29,10 +29,11 @@ class Game(lightbulb.Plugin):
     async def on_start(self, _):
         if not self.loop:
             self.loop = asyncio.get_running_loop()
+            asyncio.create_task(self.bot.set_game_presence())
+            asyncio.create_task(self.bot.set_game_chat_info())
         if not self.check_server:
             self.check_server = self.loop.create_task(self.server_running_loop())
-        # if not self.get_current_status:
-        #     self.get_current_status = self.loop.create_task(self.get_current_server_status())
+
 
     @lightbulb.listener(hikari.GuildMessageCreateEvent)
     async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
