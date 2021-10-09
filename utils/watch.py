@@ -3,8 +3,6 @@ import sys
 
 
 def wait_or_when_cancelled(pid):
-    print(pid)
-    print(type(pid))
     proc = psutil.Process(pid=int(pid))
     while True:
         try:
@@ -14,7 +12,7 @@ def wait_or_when_cancelled(pid):
         except KeyboardInterrupt:
             break
         finally:
-            exit(0)
+            exit(1)
 
 
 wait_or_when_cancelled(sys.argv[1])
