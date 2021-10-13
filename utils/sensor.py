@@ -3,8 +3,7 @@ import os
 import re
 from os import path
 from pathlib import Path
-from subprocess import PIPE, DEVNULL
-from typing import Dict, Tuple, List, Union
+from typing import Dict, Tuple, List
 
 import psutil
 import toml

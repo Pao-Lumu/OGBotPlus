@@ -1,9 +1,9 @@
 import asyncio
 import datetime
+import logging
 
 import hikari
 import psutil
-import logging
 
 
 class BaseServer:

@@ -4,13 +4,13 @@
 import asyncio
 import logging
 
+import hikari
 import lightbulb
 import psutil
 
+from OGBotPlus import OGBotPlus
 from utils import sensor
 from utils.servers import minecraft, valheim, source, base
-from OGBotPlus import OGBotPlus
-import hikari
 
 
 class Game(lightbulb.Plugin):

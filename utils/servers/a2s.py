@@ -1,10 +1,11 @@
-from hikari.errors import ForbiddenError
+import asyncio
+
 import a2s
 import valve.rcon
 import valve.source.a2s
+from hikari.errors import ForbiddenError
+
 from utils.servers.base import BaseServer
-import asyncio
-import hikari
 
 
 class A2SCompatibleServer(BaseServer):

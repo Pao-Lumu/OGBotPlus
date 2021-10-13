@@ -1,4 +1,3 @@
-
 class Emoji:
     CHECK_MARK = '\N{HEAVY CHECK MARK}'
     CROSS_MARK = '\N{HEAVY MULTIPLICATION X}'

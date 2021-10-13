@@ -1,7 +1,8 @@
+import asyncio
+import re
+
 import hikari
 import lightbulb
-import re
-import asyncio
 
 
 class Memes(lightbulb.Plugin):

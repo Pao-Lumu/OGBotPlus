@@ -1,5 +1,6 @@
-import psutil
 import sys
+
+import psutil
 
 
 def wait_or_when_cancelled(pid):

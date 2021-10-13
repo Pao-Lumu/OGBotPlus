@@ -6,6 +6,8 @@ import lightbulb
 from hikari import ActivityType, MemberUpdateEvent, PresenceUpdateEvent, Status, VoiceStateUpdateEvent, RichActivity
 
 from OGBotPlus import OGBotPlus
+
+
 # import pprint
 
 

@@ -1,8 +1,8 @@
+import asyncio
 import logging
+import random
 from os import listdir
 from os.path import join, isfile, exists
-import random
-import asyncio
 
 import hikari
 import lightbulb

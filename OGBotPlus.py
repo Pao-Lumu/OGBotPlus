@@ -1,12 +1,12 @@
+import asyncio
 import datetime
 from abc import ABC
+from typing import Dict, List, Iterable, Any, Union
 
 import hikari
 import lightbulb
-import typing
-from typing import Dict, Optional, List, Iterable, Any, Union
-import asyncio
 from colorama import Fore
+
 from utils.servers.base import BaseServer
 
 

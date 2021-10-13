@@ -7,16 +7,17 @@ import sys
 import hikari
 import pyfiglet
 import toml
-# import lightbulb
 
 from OGBotPlus import OGBotPlus
-from plugins.santa import Santa
-from plugins.warframe import Warframe
-from plugins.game import Game
-from plugins.memes import Memes
-from plugins.chat import Chat
 from plugins.activity import Activity
 from plugins.admin import Admin
+from plugins.chat import Chat
+from plugins.game import Game
+from plugins.memes import Memes
+from plugins.santa import Santa
+from plugins.warframe import Warframe
+
+# import lightbulb
 
 if os.name != "nt":
     import uvloop
