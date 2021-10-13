@@ -16,6 +16,7 @@ from plugins.game import Game
 from plugins.memes import Memes
 from plugins.chat import Chat
 from plugins.activity import Activity
+from plugins.admin import Admin
 
 if os.name != "nt":
     import uvloop
@@ -125,6 +126,7 @@ plugins = [
     Memes,
     Chat,
     Activity,
+    Admin,
 ]
 
 

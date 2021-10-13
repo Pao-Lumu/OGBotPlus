@@ -23,7 +23,7 @@ class Activity(lightbulb.Plugin):
                        'is_streaming': ['{} started streaming in {}', '{} stopped streaming in {}'],
                        'is_video_enabled': ['{} turned on their webcam', '{} shut off their webcam'],
                        'is_suppressed': ['{} was suppressed', '{} was unsuppressed']}
-        super(Activity, self).__init__()
+        super().__init__()
 
     async def is_fresh(self, user_id: int, key: str, value):
         str_uid = str(user_id)
