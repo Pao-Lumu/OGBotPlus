@@ -55,9 +55,9 @@ class Warframe(lightbulb.Plugin):
             return j
 
     @lightbulb.check(lightbulb.human_only)
-    @lightbulb.command()
+    @lightbulb.command(aliases=['when_baro'])
     async def baro(self, ctx):
-        """Tells you where and when Baro Ki'Teer is coming to Warframe, and what he's selling when he is here."""
+        """Tells you where and when Baro Ki'Teer is coming, and what he's selling when he is here."""
 
         async with aiohttp.ClientSession() as session:
             async with session.get('https://api.warframestat.us/pc/voidTrader') as resp:
@@ -87,7 +87,7 @@ class Warframe(lightbulb.Plugin):
             await ctx.respond(dukey, embed=e)
 
     @lightbulb.check(lightbulb.human_only)
-    @lightbulb.command()
+    @lightbulb.command(aliases=['nw'])
     async def nightwave(self, ctx):
         """Lists all current Nightwave missions"""
 
@@ -96,7 +96,7 @@ class Warframe(lightbulb.Plugin):
                 info = await resp.json()
 
         if info["active"]:
-            e = hikari.Embed(title="Nightwave Challenges", description="All currently-active Nightwave challenges\n\n")
+            e = hikari.Embed(title="Nightwave Challenges", description="All currently active Nightwave challenges\n\n")
             e.set_footer(text="Nora Night")
 
             for challenge in info['activeChallenges']:
@@ -111,6 +111,41 @@ class Warframe(lightbulb.Plugin):
             await ctx.respond(embed=e)
         else:
             await ctx.respond("Nightwave is currently inactive.")
+
+    @lightbulb.check(lightbulb.human_only)
+    @lightbulb.command(aliases=['voidrifts', 'rift', 'void'])
+    async def rifts(self, ctx):
+        """Lists all current void fissures"""
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://api.warframestat.us/pc/fissures') as resp:
+                info = await resp.json()
+        info.sort(key=lambda x: (x['tierNum'], x['isStorm'], x['missionType']))
+        last_rift = {'tierNum': -1, 'isStorm': False}
+        if len(info):
+            e = hikari.Embed(title="Void Fissures", description="All currently active void fissures\n\n")
+            e.set_footer(text="The Void")
+            for i, rift in enumerate(info):
+                if len(info) > i + 1 and (
+                        last_rift['tierNum'] != rift['tierNum']):
+                    e.add_field(
+                        name='`~~~~~~~~~~~~~~~~~~~~~~~`',
+                        value=f"***{rift['tier']} {'Rifts' if not rift['isStorm'] else 'Void Storms'}***",
+                        inline=False)
+                    last_rift = rift
+
+                if rift.setdefault('expired', None):
+                    print(rift)
+                    continue
+                node = re.sub(r"\)", r" Proxima)", rift['node']) if rift['isStorm'] else rift['node']
+                e.add_field(
+                    name=f"{rift['missionType']}\n_{node}_",
+                    value=f"*{rift['eta']}*",
+                    inline=True)
+            await ctx.respond(embed=e)
+        else:
+            await ctx.respond(
+                "No void storms are active. If you can read this, the API this bot uses is probably bugged out.")
+            return
 
     @lightbulb.check(lightbulb.human_only)
     @lightbulb.command(aliases=["pc"])
@@ -128,7 +163,6 @@ class Warframe(lightbulb.Plugin):
         for item in self.wf_mark_items:
             if item.get('url_name'):
                 if name in item.get('item_name').lower() or name in item.get('url_name'):
-                    # print(item)
                     fetchable_items.append((item['item_name'], item['url_name']))
         if 1 < len(fetchable_items) < 15:
             msg = "Multiple items found. Did you mean:\n"
@@ -164,7 +198,6 @@ Please be more specific.
 
                 buy = [order for order in orders if order['order_type'] == 'sell']
                 buy.sort(key=lambda order: order['platinum'])
-                # pprint.pprint(buy)
                 buy_online = [item for item in buy if
                               item['user']['status'] == "online" or item['user']['status'] == "ingame"]
 
