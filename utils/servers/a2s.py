@@ -24,10 +24,7 @@ class A2SCompatibleServer(BaseServer):
                 chat_status = f"{self.readable_name} | ({cur_p} player{'s' if cur_p != 1 else ''})"
                 await self.bot.add_game_chat_info(self.name, chat_status)
                 status = f"""
-{self.readable_name}
-({cur_p} player{'s' if cur_p != 1 else ''} online)
-CPU: {self.proc.cpu_percent()}%
-Mem: {round(self.proc.memory_percent(), 2)}%
+{self.readable_name} ({cur_p} player{'s' if cur_p != 1 else ''} online)
 """
                 await self.bot.add_game_presence(self.name, status)
             except ForbiddenError:
