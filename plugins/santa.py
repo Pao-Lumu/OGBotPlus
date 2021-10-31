@@ -1,20 +1,20 @@
 import asyncio
 import json
+import logging
 import os
 import pickle
 import random
 import sqlite3
-import logging
+
+import hikari
+import lightbulb
+
 from utils import embeds
-from OGBotPlus import OGBotPlus
+from utils.emoji import Emoji as emoji
+
 
 # import discord
 # from discord.ext import commands
-
-from utils.emoji import Emoji as emoji
-
-import lightbulb
-import hikari
 
 
 class Santa(lightbulb.Plugin):
@@ -133,8 +133,8 @@ class Santa(lightbulb.Plugin):
 
                     used_combos = [
                         # Combos from 2018
-                        ('Evan', 'Aero'), ('Aero', 'Zach'), ('Zach', 'Brandon'), ('Brandon', 'Jeromie'),
-                        ('Jeromie', 'Steven'), ('Steven', 'David'), ('David', 'Evan'),
+                        # ('Evan', 'Aero'), ('Aero', 'Zach'), ('Zach', 'Brandon'), ('Brandon', 'Jeromie'),
+                        # ('Jeromie', 'Steven'), ('Steven', 'David'), ('David', 'Evan'),
 
                         # Combos from 2019
                         ('Evan', 'Brandon'), ('Brandon', 'Aero'), ('Aero', 'Jeromie'), ('Jeromie', 'Zach'),
@@ -145,7 +145,10 @@ class Santa(lightbulb.Plugin):
                         ('Zach', 'Jeromie'), ('Jeromie', 'Evan'),
                         ('Steven', 'Aero'), ('Aero', 'Brandon'), ('Brandon', 'Steven')
                     ]
-                    banned_combos = [('Evan', 'Zach'), ('CJ', 'Forester'), ('CJ', 'Tim')]
+                    banned_combos = [('Evan', 'Zach'), ('CJ', 'Forester'), ('Jon', 'Evan'), ('Jon', 'Forester'),
+                                     ('Allen', 'Forester'), ('Cameron', 'Forester'), ('Jon', 'Cameron'),
+                                     ('Lexi', 'Allen'), ('Lexi', 'CJ'), ('Lexi', 'Cameron'), ('Lexi', 'Forester'),
+                                     ('Lexi', 'David'), ('Lexi', 'Steven') ]
 
                     continue_go = self.check_for_combos(people, used_combos, banned_combos)
 
@@ -175,7 +178,7 @@ To respond to an `>askall` question, click/tap the checkmark under it. You shoul
 
 *It's recommended that you go invisible on Discord when you send `>ask` questions, since I can't prevent people from puzzling things out from who's online.*
 
-Recommended price range: <$30, but going slightly over is acceptable.
+Recommended price: Try for under $30, but going slightly over if the need arises is acceptable. Just don't blow hundreds on a gift.
 Secret Santa gifts can be silly or serious.
 
 Please try not to give away who you are to your secret santa, as that ruins the fun of the event.
@@ -203,7 +206,6 @@ Misleading your secret santa is allowed & encouraged.
     async def ask(self, ctx: lightbulb.Context):
         async with self.santa_sql_lock:
             try:
-                # name = self.uplook[ctx.author.id]
                 self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
                 u_id, u_name, _, _, g_id, g_name = self.cursor.fetchone()
             except KeyError:
@@ -236,9 +238,7 @@ Misleading your secret santa is allowed & encouraged.
             except TypeError:
                 await ctx.respond("Your secret santa has not been assigned!")
                 return
-        # nn = ctx.message.content.lstrip(str(ctx.prefix) + str(ctx.command))
         nn = ctx.message.content.lstrip(ctx.prefix).lstrip(ctx.command.name).lstrip()
-        # nn = ctx.message.content
         if nn:
             member = self.bot.cache.get_user(int(g_id))
             msg = "`>respond` message from your giftee, {}:\n`{}`".format(u_name, nn)
