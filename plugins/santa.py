@@ -64,7 +64,7 @@ class Santa(lightbulb.Plugin):
             responses: dict = pickle.loads(pickled_responses)
             while True:
                 sent = await author.send(f'The question you have been asked is: {q}\nType your response below.')
-                asyncio.ensure_future(self.delete(sent, 10))
+                asyncio.ensure_future(self.delete(sent, 120))
 
                 message = await self.bot.wait_for(hikari.DMMessageCreateEvent, timeout=120.0, predicate=lambda
                     msg: author == msg.author and msg.channel_id == sent.channel_id)
@@ -296,7 +296,7 @@ Misleading your secret santa is allowed & encouraged.
                         continue
                 except asyncio.CancelledError:
                     await preview.delete()
-                    await ctx.respond('Okay, canceled question creation.', delete_after=10)
+                    await ctx.respond('Okay, canceled question creation.', delete_after=120)
                     break
             except asyncio.TimeoutError:
                 await ctx.respond('Timed out. Please send the command again.')
@@ -312,7 +312,7 @@ Misleading your secret santa is allowed & encouraged.
 
         dm_channel = await receiver.fetch_dm_channel()
         msg = await dm_channel.send(message, embed=embed)
-        asyncio.ensure_future(self.delete(msg, 10))
+        asyncio.ensure_future(self.delete(msg, 120))
 
         try:
             for x in reactions:
