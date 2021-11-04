@@ -120,7 +120,9 @@ class Santa(lightbulb.Plugin):
     @lightbulb.check(lightbulb.human_only)
     @lightbulb.command()
     async def secret(self, ctx: lightbulb.Context):
-        """Find out who your secret santa is for this year"""
+        """Check who your giftee for this year's secret santa is.
+Owner Only: Generate/regenerate all secret santa assignments.
+        """
         if ctx.author.id in self.bot.owner_ids:
             async with self.santa_sql_lock:
                 people = list()
@@ -148,7 +150,7 @@ class Santa(lightbulb.Plugin):
                     banned_combos = [('Evan', 'Zach'), ('CJ', 'Forester'), ('Jon', 'Evan'), ('Jon', 'Forester'),
                                      ('Allen', 'Forester'), ('Cameron', 'Forester'), ('Jon', 'Cameron'),
                                      ('Lexi', 'Allen'), ('Lexi', 'CJ'), ('Lexi', 'Cameron'), ('Lexi', 'Forester'),
-                                     ('Lexi', 'David'), ('Lexi', 'Steven') ]
+                                     ('Lexi', 'David'), ('Lexi', 'Steven')]
 
                     continue_go = self.check_for_combos(people, used_combos, banned_combos)
 
@@ -204,6 +206,7 @@ Misleading your secret santa is allowed & encouraged.
     @lightbulb.check(lightbulb.human_only)
     @lightbulb.command()
     async def ask(self, ctx: lightbulb.Context):
+        """Ask your assigned giftee a question."""
         async with self.santa_sql_lock:
             try:
                 self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
@@ -228,6 +231,7 @@ Misleading your secret santa is allowed & encouraged.
     @lightbulb.check(lightbulb.human_only)
     @lightbulb.command()
     async def respond(self, ctx: lightbulb.Context):
+        """Respond to your gifter."""
         async with self.santa_sql_lock:
             try:
                 self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
@@ -240,12 +244,12 @@ Misleading your secret santa is allowed & encouraged.
                 return
         nn = ctx.message.content.lstrip(ctx.prefix).lstrip(ctx.command.name).lstrip()
         if nn:
-            member = self.bot.cache.get_user(int(g_id))
+            member: hikari.Member = self.bot.cache.get_user(int(g_id))
             msg = "`>respond` message from your giftee, {}:\n`{}`".format(u_name, nn)
             try:
                 await member.send(content=msg)
                 await ctx.respond("Message Sent!")
-            except:
+            except hikari.ForbiddenError:
                 await ctx.respond("Message may have failed to send. Consult Evan.")
         else:
             await ctx.respond("Please add a message.")
@@ -254,6 +258,7 @@ Misleading your secret santa is allowed & encouraged.
     @lightbulb.check(lightbulb.human_only)
     @lightbulb.command(aliases=['poll'])
     async def askall(self, ctx: lightbulb.Context):
+        """Send a question to the main server's questions channel for everyone to respond to."""
         if ctx.get_channel():
             await ctx.respond('Please use DMs to set up polls.')
             return
@@ -262,7 +267,8 @@ Misleading your secret santa is allowed & encouraged.
         while True:
             try:
                 if not message:
-                    await ctx.respond('Please type your question.')
+                    await ctx.respond(
+                        'Please type your question. (If no response is received within 2 minutes, this will time out and you will have to type `>askall` or `>poll` again.)')
                     message = await self.bot.wait_for(hikari.DMMessageCreateEvent, timeout=120.0,
                                                       predicate=lambda msg: rcvr == msg.author)
                 e = hikari.Embed(color=hikari.Color.from_rgb(0, 255, 0))
@@ -273,7 +279,7 @@ Misleading your secret santa is allowed & encouraged.
                     message = ''
                     continue
                 e.title = '_*Someone asked:*_'
-                e.description = '{}\n\n`VVVV Responses VVVV`'.format(question)
+                e.description = '{}\n\n`Responses: `'.format(question)
                 preview = await self.send_with_yes_no_reactions(rcvr,
                                                                 message='This is how your question will look. Are you sure you want to send this message?',
                                                                 embed=e, extra_reactions=(emoji.CROSS_MARK,))
@@ -296,10 +302,12 @@ Misleading your secret santa is allowed & encouraged.
                         continue
                 except asyncio.CancelledError:
                     await preview.delete()
-                    await ctx.respond('Okay, canceled question creation.', delete_after=120)
+                    msg = await ctx.respond('Okay, canceled question creation.')
+                    asyncio.ensure_future(self.delete(msg, 30))
                     break
             except asyncio.TimeoutError:
-                await ctx.respond('Timed out. Please send the command again.')
+                msg = await ctx.respond('Timed out. Please send the command again.')
+                asyncio.ensure_future(self.delete(msg, 30))
                 break
             except Exception as e:
                 await self.send_error_ctx(ctx, e)
