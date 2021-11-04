@@ -3,10 +3,14 @@ import os
 import re
 from os import path
 from pathlib import Path
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union
 
+import docker
 import psutil
 import toml
+from docker.errors import APIError
+
+docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock', tls=True, version="auto")
 
 
 def are_servers_running(ports: List[int]) -> bool:
@@ -20,7 +24,11 @@ def are_servers_running(ports: List[int]) -> bool:
         return False
 
 
-def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
+def get_running_servers(ports: List[int]):
+    pass
+
+
+def get_running_procs(ports: List[int]) -> List[Tuple[int, Union[psutil.Process, str]]]:
     running_procs = []
     temp = []
     for p in psutil.process_iter(attrs=['connections']):
@@ -35,16 +43,26 @@ def get_running_procs(ports: List[int]) -> List[Tuple[int, psutil.Process]]:
     return running_procs
 
 
+def get_running_containers(ports: List[int]):
+    cmd = os.popen("""docker container ls --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}'""")
+    result = cmd.readlines()
+    running_cons = []
+    for line in result:
+        match = re.findall(rf"\s([\w\d._\-]+)(?:\s*0\.0\.0\.0:)({'|'.join([str(port) for port in ports])})", line)
+        if match:
+            running_cons.append((match[0], match[1]))
+            continue
+    return running_cons
+
+
 def is_lgsm(proc: psutil.Process) -> bool:
     return True if "serverfiles" in str(proc.cwd()) else False
 
 
 def find_root_directory(start_dir: str) -> str:
     if not os.path.isdir(start_dir):
-        print(start_dir)
         raise FileNotFoundError(start_dir + "is either not a valid directory path or not accessible")
     else:
-        # print("starting to search")
         parent = start_dir
         looking_for_root = True
         while looking_for_root:
@@ -144,3 +162,32 @@ def get_game_info(process: psutil.Process) -> Dict:
             print(f"Exception {type(e)}: {e}")
 
         return defaults
+
+
+class ServerReference:
+    def __init__(self, ref: Union[psutil.Process, List[str]]):
+        if isinstance(ref, psutil.Process):
+            self.__ref = ref
+            self.is_proc = True
+            self._pid = str(ref.pid)
+        elif isinstance(ref, list):
+            self._pid = "0"
+        pass
+
+    @property
+    def pid(self) -> str:
+        """This is either the process ID, or the container ID"""
+        return self._pid
+
+    def is_running(self) -> bool:
+        if self.is_proc:
+            return self.__ref.is_running()
+        else:
+            try:
+                docker_client.api.inspect_container(self._pid)
+                return True
+            except APIError:
+                return False
+
+    def cwd(self):
+        pass
