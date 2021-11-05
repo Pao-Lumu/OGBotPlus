@@ -132,11 +132,12 @@ class MinecraftDockerServer(BaseServer):
                     else:
                         continue
                 if msgs:
-                    x = "\n".join(zip(*msgs)[0])
+                    x = "\n".join(list(zip(*msgs))[0])
                     for chan in self.bot.chat_channels_obj:
                         await chan.send(x, user_mentions=mentioned_users)
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
+            await asyncio.sleep(.75)
         pass
 
     def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
