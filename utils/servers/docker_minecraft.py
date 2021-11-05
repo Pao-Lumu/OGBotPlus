@@ -109,7 +109,7 @@ class MinecraftDockerServer(BaseServer):
 
     async def read_server_log(self):
         print('reading_server_log')
-        watcher = await asyncio.create_subprocess_shell(cmd=f"echo stdout && sleep 1 && python3 utils/docker_logwatch.py {self.proc.id}",
+        watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -fn 0 --since 0m {self.proc.id}",
                                                         stdout=asyncio.subprocess.PIPE)
         print(type(watcher.stdout))
         # print()
