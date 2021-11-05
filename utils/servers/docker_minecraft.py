@@ -1,8 +1,6 @@
 import asyncio
 import datetime
-import os.path
 import socket
-import subprocess
 import textwrap as tw
 from typing import List, Tuple, Optional
 
@@ -67,13 +65,10 @@ class MinecraftDockerServer(BaseServer):
         self.bot.bprint("chat_from_game_to_guild")
         # file_path = path.join(self.working_dir, "logs", "latest.log") if path.exists(
         #     path.join(self.working_dir, "logs", "latest.log")) else os.path.join(self.working_dir, "server.log")
-        server_filter = regex.compile(
-            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
-        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
 
         while self.is_running() and self.bot.is_alive:
             try:
-                await self.read_server_log(player_filter, server_filter)
+                await self.read_server_log()
                 # await self.read_server_log(str(file_path), player_filter, server_filter)
                 # await self._move_log()
                 await asyncio.sleep(1)
@@ -112,54 +107,60 @@ class MinecraftDockerServer(BaseServer):
     #                 break
     #             await asyncio.sleep(.75)
 
-    async def read_server_log(self, player_filter, server_filter):
+    async def read_server_log(self):
         print('reading_server_log')
-        # watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}",
-        #                                                 stdout=asyncio.subprocess.PIPE,
-        #                                                 stderr=asyncio.subprocess.PIPE)
-        print()
-        file = os.path.join(os.getcwd(), 'utils', 'docker_logwatch.py')
+        watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}",
+                                                        stdout=asyncio.subprocess.PIPE)
+        print(type(watcher.stdout))
+        # print()
+        # file = os.path.join(os.getcwd(), 'utils', 'docker_logwatch.py')
         # watcher = subprocess.Popen([f"/usr/bin/python3", file, self.proc.id], stdout=subprocess.PIPE)
-        watcher = subprocess.Popen([f"python3", "utils/docker_logwatch.py", self.proc.id], stdout=subprocess.PIPE)
+        # watcher = subprocess.Popen([f"python3", "utils/docker_logwatch.py", self.proc.id], stdout=subprocess.PIPE)
         print('created watcher')
         while self.is_running() and self.bot.is_alive:
-            if watcher.stdout:
-                print('got output')
-                msgs = []
-                mentioned_users = []
-                print('hey')
-                try:
-                    out = watcher.stdout.readlines()
-                    print(type(out))
-                    for line in out:
-                        print(type(line))
-                        print(line)
-                        raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
-                        raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
+            await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
 
-                        if raw_player_msg:
-                            # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
-                            ret = self.check_for_mentions(raw_player_msg[0])
-                            mentioned_users += ret[0]
-                            x = ret[1]
-                            msgs.append((x, mentioned_users))
-                            # pass
-                        elif raw_server_msg:
-                            msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
-                        else:
-                            continue
-                    if msgs:
-                        x = "\n".join(list(zip(*msgs))[0])
-                        for chan in self.bot.chat_channels_obj:
-                            await chan.send(x, user_mentions=mentioned_users)
-                    for msg in msgs:
-                        self.bot.bprint(f"{self._repr} | {''.join(msg)}")
-                except Exception as e:
-                    print(type(e))
-                    print(e)
-                    await asyncio.sleep(1)
             await asyncio.sleep(2)
         pass
+
+    @staticmethod
+    async def _read_stream(stream: asyncio.subprocess.PIPE, cb):
+        while True:
+            line = await stream.readlines()
+            if line:
+                cb(line)
+            else:
+                break
+
+    def process_server_messages(self, out):
+        server_filter = regex.compile(
+            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
+        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
+        msgs = []
+        mentioned_users = []
+        for line in out:
+            print(type(line))
+            print(line)
+            raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
+            raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
+
+            if raw_player_msg:
+                # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
+                ret = self.check_for_mentions(raw_player_msg[0])
+                mentioned_users += ret[0]
+                x = ret[1]
+                msgs.append((x, mentioned_users))
+                # pass
+            elif raw_server_msg:
+                msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
+            else:
+                continue
+        if msgs:
+            x = "\n".join(list(zip(*msgs))[0])
+            for chan in self.bot.chat_channels_obj:
+                await chan.send(x, user_mentions=mentioned_users)
+        for msg in msgs:
+            self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
     def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
         indexes: List[int] = [m.start() for m in regex.finditer('@', message)]
