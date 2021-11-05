@@ -21,11 +21,14 @@ from utils.servers.base import BaseServer
 class MinecraftDockerServer(BaseServer):
 
     def __init__(self, bot: OGBotPlus, process: Container, **kwargs):
+        bot.bprint("initialized")
         super().__init__(bot, process, **kwargs)
+        bot.bprint("super called")
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
         self.bot.loop.create_task(self.wait_for_death())
+        bot.bprint("taskes created")
         self.motd: str = kwargs.pop('motd', "A Dockerized Minecraft Server")
         self._repr = "Minecraft In Docker"
 
@@ -45,11 +48,11 @@ class MinecraftDockerServer(BaseServer):
             print(e)
             pass
 
-    async def _move_log(self):
-        await self._rcon_connect()
-        async with self.rcon_lock:
-            self.rcon.command("seed")
-        pass
+    # async def _move_log(self):
+    #     await self._rcon_connect()
+    #     async with self.rcon_lock:
+    #         self.rcon.command("seed")
+    #     pass
 
     def is_running(self) -> bool:
         self.proc.reload()
@@ -68,7 +71,7 @@ class MinecraftDockerServer(BaseServer):
         while self.is_running() and self.bot.is_alive:
             try:
                 await self.read_server_log(str(file_path), player_filter, server_filter)
-                await self._move_log()
+                # await self._move_log()
                 await asyncio.sleep(1)
             except Exception as e:
                 print(e)

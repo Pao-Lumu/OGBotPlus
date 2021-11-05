@@ -28,11 +28,11 @@ def are_servers_running(ports: List[int]) -> bool:
 
 
 def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Process, Container]]]:
-    print("get_running_servers")
+    # print("get_running_servers")
     running_servers = []
     temp = []
     result = docker_client.containers.list(filters={'status': 'running'})
-    print("intial dingus")
+    # print("intial dingus")
 
     for p in psutil.process_iter(attrs=['connections']):
         if not p.info['connections']:
@@ -40,20 +40,20 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
         connections = [y.laddr.port for y in p.info['connections']]
         connections.sort()
         for x in connections:
-            print(x)
+            # print(x)
             if x in ports and p not in temp:
                 running_servers.append((x, p))
                 temp.append(p)
     # print(running_servers)
     for container in result:
         for _, v in container.ports.items():
-            print("v")
-            print(v)
+            # print("v")
+            # print(v)
             cons = [(conn['HostPort'], container) for conn in v if conn['HostPort'] in ports]
             running_servers.extend(cons)
             continue
-    print("running_servers")
-    print(running_servers)
+    # print("running_servers")
+    # print(running_servers)
     return running_servers
 
 
@@ -108,7 +108,7 @@ def find_root_directory(start_dir: str) -> str:
 
 
 def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
-    print('get_game_info')
+    # print('get_game_info')
     if isinstance(process, psutil.Process):
         try:
             cwd = process.cwd()
@@ -162,11 +162,11 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
                         'executable': process.name(),
                         'command': process.cmdline()}
     elif isinstance(process, Container):
-        print(process)
+        # print(process)
         root = Path(process.labels['com.docker.compose.project.working_dir'])
-        print(root)
+        # print(root)
         toml_path = path.join(root, '.gameinfo.toml')
-        print(toml_path)
+        # print(toml_path)
         try:
             defaults = {'name': Path(root).name,
                         'game': process.labels['com.docker.compose.service'],
@@ -185,7 +185,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
     # if the TOML file exists, load then override the defaults, and save
     # this should correctly add new fields when they are programmed in.
     if os.path.isfile(toml_path):
-        print('is file')
+        # print('is file')
         try:
             with open(toml_path) as file:
 
@@ -201,7 +201,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
             print(f"Exception {type(e)}: {e}")
         return game_info
     else:
-        print('generating file')
+        # print('generating file')
         try:
             # if the TOML file doesn't exist, create it, load defaults, and save
             Path(toml_path).touch()
