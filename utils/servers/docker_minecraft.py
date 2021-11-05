@@ -1,9 +1,7 @@
 import asyncio
 import datetime
-import os
 import socket
 import textwrap as tw
-from os import path
 from typing import List, Tuple, Optional
 
 import hikari
@@ -33,6 +31,7 @@ class MinecraftDockerServer(BaseServer):
         self._repr = "Minecraft In Docker"
 
     async def _rcon_connect(self):
+        self.bot.bprint("rcon_connect")
         if not self.rcon:
             self.rcon = mcrcon.MCRcon(self.ip, self.password, port=self.rcon_port)
         try:
@@ -55,6 +54,7 @@ class MinecraftDockerServer(BaseServer):
     #     pass
 
     def is_running(self) -> bool:
+        self.bot.bprint("is_running")
         self.proc.reload()
         if self.proc.status == 'running':
             return True
@@ -62,15 +62,17 @@ class MinecraftDockerServer(BaseServer):
             return False
 
     async def chat_from_game_to_guild(self):
-        file_path = path.join(self.working_dir, "logs", "latest.log") if path.exists(
-            path.join(self.working_dir, "logs", "latest.log")) else os.path.join(self.working_dir, "server.log")
+        self.bot.bprint("chat_from_game_to_guild")
+        # file_path = path.join(self.working_dir, "logs", "latest.log") if path.exists(
+        #     path.join(self.working_dir, "logs", "latest.log")) else os.path.join(self.working_dir, "server.log")
         server_filter = regex.compile(
             r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
         player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
 
         while self.is_running() and self.bot.is_alive:
             try:
-                await self.read_server_log(str(file_path), player_filter, server_filter)
+                await self.read_server_log(player_filter, server_filter)
+                # await self.read_server_log(str(file_path), player_filter, server_filter)
                 # await self._move_log()
                 await asyncio.sleep(1)
             except Exception as e:
@@ -107,7 +109,7 @@ class MinecraftDockerServer(BaseServer):
     #                 break
     #             await asyncio.sleep(.75)
 
-    async def read_server_log(self, file_path, player_filter, server_filter):
+    async def read_server_log(self, player_filter, server_filter):
         watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}")
         while self.is_running() and self.bot.is_alive:
             if watcher.stdout:
