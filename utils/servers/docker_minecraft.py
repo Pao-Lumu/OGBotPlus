@@ -79,6 +79,7 @@ class MinecraftDockerServer(BaseServer):
                 await asyncio.sleep(1)
             except Exception as e:
                 print(e)
+                await asyncio.sleep(.1)
 
     # async def read_server_log(self, file_path, player_filter, server_filter):
     #     date = datetime.datetime.now().day
