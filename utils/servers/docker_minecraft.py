@@ -110,12 +110,16 @@ class MinecraftDockerServer(BaseServer):
     #             await asyncio.sleep(.75)
 
     async def read_server_log(self, player_filter, server_filter):
+        print('reading_server_log')
         watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}")
         while self.is_running() and self.bot.is_alive:
-            if watcher.stdout:
-                print('got stdout')
+            out, _ = await watcher.communicate()
+            print(out)
+            print(True if out else False)
+            if out:
+                print('got output')
                 msgs = []
-                out = await watcher.stdout.read()
+                # out, _ = await watcher.communicate()
                 print(out)
                 mentioned_users = []
                 for line in out.decode('utf-8'):
