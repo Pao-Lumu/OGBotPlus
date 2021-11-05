@@ -178,6 +178,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
         except Exception as e:
             print(type(e))
             print(e)
+            raise RuntimeError
     else:
         raise RuntimeError('get_game_info was passed an object that was not a Process or a Container')
 
