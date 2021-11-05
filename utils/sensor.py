@@ -50,6 +50,7 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
             print("v")
             print(v)
             asdf = [conn['HostPort'] for conn in v]
+            print(ports)
             print(asdf in ports)
             print(int(asdf[0]) in ports)
 
