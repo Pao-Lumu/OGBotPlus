@@ -236,6 +236,7 @@ class MinecraftDockerServer(BaseServer):
                 print(e)
 
     async def wait_for_death(self):
+        print('waiting for the server to DIE')
         while True:
             self.proc.reload()
             if self.proc.status == 'running':
