@@ -15,13 +15,15 @@ docker_client = DockerClient(base_url='unix://var/run/docker.sock', tls=True, ve
 
 def are_servers_running(ports: List[int]) -> bool:
     for p in psutil.process_iter(attrs=['connections']):
+        print('h')
         if not p.info['connections']:
             continue
         for x in p.info['connections']:
             if x.laddr.port in ports:
                 return True
     else:
-        if docker_client.containers.list(filters={'status': 'running'}):
+        print('hmm')
+        if len(docker_client.containers.list(filters={'status': 'running'})) > 0:
             return True
     return False
 
