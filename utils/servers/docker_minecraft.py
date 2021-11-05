@@ -116,8 +116,9 @@ class MinecraftDockerServer(BaseServer):
         print(self.is_running())
         print(self.bot.is_alive)
         while self.is_running() and self.bot.is_alive:
+            print('getting things')
             out, _ = await watcher.communicate()
-            print(out)
+            print('out:' + str(out))
             print(True if out else False)
             if out:
                 print('got output')
