@@ -4,11 +4,10 @@ import os
 import socket
 import textwrap as tw
 from os import path
-from typing import List, Tuple, Optional
+from typing import List, Optional
 
 import aiofiles
 import hikari
-import lightbulb
 import mcrcon
 import psutil
 import regex
@@ -97,27 +96,6 @@ class MinecraftServer(BaseServer):
                 if date != datetime.datetime.now().day:
                     break
                 await asyncio.sleep(.75)
-
-    def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
-        indexes: List[int] = [m.start() for m in regex.finditer('@', message)]
-        mentioned_members = []
-        for index in indexes:
-            try:
-                mention = message[index + 1:]
-                for chan in self.bot.chat_channels_obj:
-                    for ind in range(0, min(len(mention) + 1, 32)):
-                        member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members().values(),
-                                                      lambda m: m.username == mention[:ind] or
-                                                                m.nickname == mention[:ind])
-                        if member:
-                            mentioned_members.append(member)
-                            message = message.replace("@" + mention[:ind], f"<@{member.id}>")
-                            break
-
-            except Exception as e:
-                self.bot.bprint("ERROR | Server2Guild Mentions Exception caught: " + str(e))
-                pass
-        return mentioned_members, message
 
     def remove_nestings(self, iterable):
         output = []

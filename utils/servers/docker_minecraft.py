@@ -3,10 +3,9 @@ import datetime
 import logging
 import socket
 import textwrap as tw
-from typing import List, Tuple, Optional
+from typing import List, Optional
 
 import hikari
-import lightbulb
 import mcrcon
 import regex
 from docker.models.containers import Container
@@ -14,10 +13,10 @@ from hikari.errors import ForbiddenError
 from mcstatus import MinecraftServer as mc
 
 from OGBotPlus import OGBotPlus
-from utils.servers.base import BaseServer
+from utils.servers.docker_base import BaseDockerServer
 
 
-class MinecraftDockerServer(BaseServer):
+class MinecraftDockerServer(BaseDockerServer):
 
     def __init__(self, bot: OGBotPlus, process: Container, **kwargs):
         logging.debug("initialized dockerized minecraft server")
@@ -41,49 +40,10 @@ class MinecraftDockerServer(BaseServer):
                         self.rcon.connect()
                         self.last_reconnect = datetime.datetime.now()
                     except mcrcon.MCRconException as e:
-                        print(e)
+                        logging.error(e)
         except Exception as e:
-            print(e)
+            logging.error(e)
             pass
-
-    def is_running(self) -> bool:
-        logging.debug("is_running")
-        self.proc.reload()
-        if self.proc.status == 'running':
-            return True
-        else:
-            return False
-
-    async def chat_from_game_to_guild(self):
-        logging.debug("chat_from_game_to_guild")
-
-        while self.is_running() and self.bot.is_alive:
-            try:
-                await self.read_server_log()
-                await asyncio.sleep(1)
-            except Exception as e:
-                print(e)
-                await asyncio.sleep(.1)
-
-    async def read_server_log(self):
-        watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
-                                                        stdout=asyncio.subprocess.PIPE)
-        while self.is_running() and self.bot.is_alive:
-            await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
-        pass
-
-    @staticmethod
-    async def _read_stream(stream: asyncio.streams.StreamReader, cb):
-        lines = []
-        while True:
-            try:
-                line = await asyncio.wait_for(stream.readuntil(), timeout=2)
-                lines.append(line.decode('utf-8'))
-            except asyncio.exceptions.TimeoutError:
-                if lines:
-                    await cb(lines)
-                    lines = []
-                    await asyncio.sleep(1)
 
     async def process_server_messages(self, out):
         server_filter = regex.compile(
@@ -109,27 +69,6 @@ class MinecraftDockerServer(BaseServer):
                 await chan.send(x, user_mentions=mentioned_users)
         for msg in msgs:
             self.bot.bprint(f"{self._repr} | {''.join(msg)}")
-
-    def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
-        indexes: List[int] = [m.start() for m in regex.finditer('@', message)]
-        mentioned_members = []
-        for index in indexes:
-            try:
-                mention = message[index + 1:]
-                for chan in self.bot.chat_channels_obj:
-                    for ind in range(0, min(len(mention) + 1, 32)):
-                        member = lightbulb.utils.find(self.bot.cache.get_guild(chan.guild_id).get_members().values(),
-                                                      lambda m: m.username == mention[:ind] or
-                                                                m.nickname == mention[:ind])
-                        if member:
-                            mentioned_members.append(member)
-                            message = message.replace("@" + mention[:ind], f"<@{member.id}>")
-                            break
-
-            except Exception as e:
-                logging.critical("ERROR | Server2Guild Mentions Exception caught: " + str(e))
-                pass
-        return mentioned_members, message
 
     def remove_nestings(self, iterable):
         output = []
@@ -194,18 +133,6 @@ class MinecraftDockerServer(BaseServer):
                 logging.error("guild2server catchall:")
                 logging.error(type(e))
                 logging.error(e)
-
-    async def wait_for_death(self):
-        # print('waiting for the server to DIE')
-        while True:
-            self.proc.reload()
-            if self.proc.status == 'running':
-                await asyncio.sleep(5)
-            else:
-                await asyncio.sleep(2)
-                break
-        self.teardown()
-        logging.debug('killed server object for ' + self.__repr__())
 
     async def update_server_information(self):
         tries = 1
