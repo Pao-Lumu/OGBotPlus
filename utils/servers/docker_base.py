@@ -36,13 +36,14 @@ class BaseDockerServer(BaseServer):
         while True:
             try:
                 line = await asyncio.wait_for(stream.readuntil(), timeout=3)
-                lines.append(line.decode('utf-8'))
+                if line not in lines:
+                    lines.append(line.decode('utf-8'))
             except asyncio.exceptions.TimeoutError:
                 if lines:
                     await cb(lines)
                     lines = []
             except asyncio.exceptions.IncompleteReadError:
-                continue
+                pass
             finally:
                 continue
 
