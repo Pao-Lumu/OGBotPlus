@@ -21,7 +21,9 @@ def are_servers_running(ports: List[int]) -> bool:
             if x.laddr.port in ports:
                 return True
     else:
-        return False
+        if docker_client.containers.list(filters={'status': 'running'}):
+            return True
+    return False
 
 
 def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Process, Container]]]:
