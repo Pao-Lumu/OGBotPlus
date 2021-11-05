@@ -115,8 +115,6 @@ class MinecraftDockerServer(BaseServer):
         print('created watcher')
         while self.is_running() and self.bot.is_alive:
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
-            print("test")
-            await asyncio.sleep(2)
         pass
 
     @staticmethod
@@ -124,15 +122,13 @@ class MinecraftDockerServer(BaseServer):
         lines = []
         while True:
             try:
-                line = await asyncio.wait_for(stream.readuntil(), timeout=5)
-                # print(line)
+                line = await asyncio.wait_for(stream.readuntil(), timeout=2)
                 lines.append(line.decode('utf-8'))
             except asyncio.exceptions.TimeoutError:
                 if lines:
                     await cb(lines)
                     lines = []
-                    await asyncio.sleep(3)
-                continue
+                    await asyncio.sleep(1)
 
     async def process_server_messages(self, out):
         server_filter = regex.compile(
