@@ -124,7 +124,7 @@ class MinecraftDockerServer(BaseServer):
         lines = []
         while True:
             line = await stream.readuntil()
-            print('got line!')
+            print(line)
             if line:
                 try:
                     lines.append(line.decode('utf-8'))
@@ -132,6 +132,7 @@ class MinecraftDockerServer(BaseServer):
                     print("FUCK")
             else:
                 await cb(lines)
+            await asyncio.sleep(3)
 
     async def process_server_messages(self, out):
         server_filter = regex.compile(
