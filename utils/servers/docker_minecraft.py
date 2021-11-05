@@ -127,6 +127,8 @@ class MinecraftDockerServer(BaseServer):
                 print('got output')
                 msgs = []
                 mentioned_users = []
+                print(watcher.stdout)
+                print(type(watcher.stdout))
                 for line in watcher.stdout:
                     print(line)
                     raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
