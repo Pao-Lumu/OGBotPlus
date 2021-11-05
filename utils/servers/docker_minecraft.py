@@ -125,10 +125,9 @@ class MinecraftDockerServer(BaseServer):
         while True:
             try:
                 line = await asyncio.wait_for(stream.readuntil(), timeout=5)
-                print(line)
+                # print(line)
                 lines.append(line.decode('utf-8'))
             except asyncio.exceptions.TimeoutError:
-                print("got nothing")
                 if lines:
                     await cb(lines)
                     lines = []
@@ -142,8 +141,8 @@ class MinecraftDockerServer(BaseServer):
         msgs = []
         mentioned_users = []
         for line in out:
-            print(type(line))
-            print(line)
+            # print(type(line))
+            # print(line)
             raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
             raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
