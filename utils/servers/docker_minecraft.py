@@ -129,7 +129,10 @@ class MinecraftDockerServer(BaseServer):
                 mentioned_users = []
                 print('hey')
                 try:
-                    for line in watcher.stdout.readlines():
+                    out = watcher.stdout.readlines()
+                    print(type(out))
+                    for line in out:
+                        print(type(line))
                         print(line)
                         raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
                         raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
