@@ -3,14 +3,16 @@
 # from utils import helpers
 import asyncio
 import logging
+from typing import Union
 
 import hikari
 import lightbulb
 import psutil
+from docker.models.containers import Container
 
 from OGBotPlus import OGBotPlus
 from utils import sensor
-from utils.servers import minecraft, valheim, source, base
+from utils.servers import minecraft, valheim, source, base, docker_minecraft as mc_docker
 
 
 class Game(lightbulb.Plugin):
@@ -77,18 +79,23 @@ class Game(lightbulb.Plugin):
             await asyncio.sleep(5)
 
 
-def generate_server_object(bot, process, gameinfo: dict) -> base.BaseServer:
+def generate_server_object(bot, process: Union[Container, psutil.Process], gameinfo: dict) -> base.BaseServer:
     executable = gameinfo['executable'].lower()
-    if 'srcds' in executable:
-        return source.SourceServer(bot, process, **gameinfo)
-    elif gameinfo['game'] == "minecraft" \
-            or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
-                or 'server.jar' in ' '.join(gameinfo['command'])
-                or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
-        return minecraft.MinecraftServer(bot, process, **gameinfo)
-    elif 'valheim_server' in executable:
-        return valheim.ValheimServer(bot, process, **gameinfo)
-    elif 'terraria' in executable:
-        pass  # nyi
+    if isinstance(psutil.Process, process):
+        if 'srcds' in executable:
+            return source.SourceServer(bot, process, **gameinfo)
+        elif gameinfo['game'] == "minecraft" \
+                or ('java' in executable and ('forge' in ' '.join(gameinfo['command']))
+                    or 'server.jar' in ' '.join(gameinfo['command'])
+                    or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
+            return minecraft.MinecraftServer(bot, process, **gameinfo)
+        elif 'valheim_server' in executable:
+            return valheim.ValheimServer(bot, process, **gameinfo)
+        elif 'terraria' in executable:
+            pass  # nyi
+    if isinstance(Container, process):
+        process: Container
+        if 'minecraft' in process.labels['com.docker.compose.service']:
+            return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
     else:
         print("Didn't find server... hm.")

@@ -3,13 +3,12 @@ import datetime
 import logging
 
 import hikari
-import psutil
 
 
 class BaseServer:
-    def __init__(self, bot, process: psutil.Process, **kwargs):
+    def __init__(self, bot, process, **kwargs):
         self.bot = bot
-        self.proc: psutil.Process = process
+        self.proc = process
         self.name: str = kwargs.pop('name', 'a game')
         self.ip: str = kwargs.pop('ip', '127.0.0.1')
         self.port: int = int(kwargs.pop('port', 22222))
@@ -50,9 +49,9 @@ class BaseServer:
     async def sleep_with_backoff(tries, wait_time=5):
         await asyncio.sleep(wait_time * tries)
 
-    @property
-    def status(self) -> psutil.Process:
-        return self.proc
+    # @property
+    # def status(self) -> psutil.Process:
+    #     return self.proc
 
     @property
     def players(self) -> int:
