@@ -167,14 +167,17 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
         print(root)
         toml_path = path.join(root, '.gameinfo.toml')
         print(toml_path)
-
-        defaults = {'name': Path(root).name,
-                    'game': process.labels['com.docker.compose.service'],
-                    'folder': process.attrs['Mounts'][0]['Source'],
-                    'rcon': '',
-                    'executable': process.name(),
-                    'command': 'docker-compose --compatibility up -d',
-                    'compose_folder': root}
+        try:
+            defaults = {'name': Path(root).name,
+                        'game': process.labels['com.docker.compose.service'],
+                        'folder': process.attrs['Mounts'][0]['Source'],
+                        'rcon': '',
+                        'executable': process.name(),
+                        'command': 'docker-compose --compatibility up -d',
+                        'compose_folder': root}
+        except Exception as e:
+            print(type(e))
+            print(e)
     else:
         raise RuntimeError('get_game_info was passed an object that was not a Process or a Container')
 
