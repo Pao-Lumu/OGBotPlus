@@ -77,7 +77,9 @@ class Game(lightbulb.Plugin):
                 if not new_servers:
                     await asyncio.sleep(2)
                     continue
+                print("test")
                 for port, server in new_servers:
+                    print("test 2")
                     data = sensor.get_game_info(server)
                     print(data)
                     self.bot.games[str(port)] = generate_server_object(bot=self.bot,

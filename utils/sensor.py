@@ -15,7 +15,6 @@ docker_client = DockerClient(base_url='unix://var/run/docker.sock', tls=True, ve
 
 def are_servers_running(ports: List[int]) -> bool:
     for p in psutil.process_iter(attrs=['connections']):
-        print('h')
         if not p.info['connections']:
             continue
         for x in p.info['connections']:
