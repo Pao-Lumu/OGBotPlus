@@ -172,7 +172,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
                         'game': process.labels['com.docker.compose.service'],
                         'folder': process.attrs['Mounts'][0]['Source'],
                         'rcon': '',
-                        'executable': process.name(),
+                        'executable': process.name,
                         'command': 'docker-compose --compatibility up -d',
                         'compose_folder': root}
         except Exception as e:
