@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import socket
+import subprocess
 import textwrap as tw
 from typing import List, Tuple, Optional
 
@@ -111,24 +112,20 @@ class MinecraftDockerServer(BaseServer):
 
     async def read_server_log(self, player_filter, server_filter):
         print('reading_server_log')
-        watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}",
-                                                        stdout=asyncio.subprocess.PIPE,
-                                                        stderr=asyncio.subprocess.PIPE)
+        # watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}",
+        #                                                 stdout=asyncio.subprocess.PIPE,
+        #                                                 stderr=asyncio.subprocess.PIPE)
+        print()
+        watcher = subprocess.Popen([f"python3 utils/docker_logwatch.py {self.proc.id}"], stdout=subprocess.PIPE)
         print('created watcher')
         print(self.is_running())
         print(self.bot.is_alive)
         while self.is_running() and self.bot.is_alive:
-            print('getting things')
-            out, _ = await watcher.communicate()
-            print('out:' + str(out))
-            print(True if out else False)
-            if out:
+            if watcher.stdout:
                 print('got output')
                 msgs = []
-                # out, _ = await watcher.communicate()
-                print(out)
                 mentioned_users = []
-                for line in out.decode('utf-8'):
+                for line in watcher.stdout:
                     print(line)
                     raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
                     raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
