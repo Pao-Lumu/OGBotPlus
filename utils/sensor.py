@@ -49,7 +49,7 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
         for _, v in container.ports.items():
             print("v")
             print(v)
-            cons = [(conn['HostPort'], container) for conn in v]
+            cons = [(conn['HostPort'], container) for conn in v if conn['HostPort'] in ports]
             running_servers.extend(cons)
             continue
     print("running_servers")
