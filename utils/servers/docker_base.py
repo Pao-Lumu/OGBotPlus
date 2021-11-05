@@ -41,6 +41,8 @@ class BaseDockerServer(BaseServer):
                 if lines:
                     await cb(lines)
                     lines = []
+            finally:
+                continue
 
     def is_running(self) -> bool:
         logging.debug("is_running")
