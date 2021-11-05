@@ -108,11 +108,8 @@ class MinecraftDockerServer(BaseServer):
     #             await asyncio.sleep(.75)
 
     async def read_server_log(self):
-        print('reading_server_log')
         watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
                                                         stdout=asyncio.subprocess.PIPE)
-        print(type(watcher.stdout))
-        print('created watcher')
         while self.is_running() and self.bot.is_alive:
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
         pass
@@ -137,8 +134,6 @@ class MinecraftDockerServer(BaseServer):
         msgs = []
         mentioned_users = []
         for line in out:
-            # print(type(line))
-            # print(line)
             raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
             raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
@@ -146,8 +141,7 @@ class MinecraftDockerServer(BaseServer):
                 # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
                 ret = self.check_for_mentions(raw_player_msg[0])
                 mentioned_users += ret[0]
-                x = ret[1]
-                msgs.append((x, mentioned_users))
+                msgs.append((ret[1], mentioned_users))
                 # pass
             elif raw_server_msg:
                 msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
