@@ -115,7 +115,7 @@ class MinecraftDockerServer(BaseServer):
         print('created watcher')
         while self.is_running() and self.bot.is_alive:
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
-
+            print("test")
             await asyncio.sleep(2)
         pass
 
