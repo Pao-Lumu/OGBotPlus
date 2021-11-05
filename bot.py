@@ -31,11 +31,11 @@ fmt = logging.Formatter('%(asctime)s - %(message)s', datefmt="%Y-%m-%d %H:%M:%S"
 log = logging.getLogger()
 sh = logging.StreamHandler(sys.stderr)
 sh.setFormatter(fmt)
-sh.setLevel(logging.CRITICAL)
+sh.setLevel(logging.ERROR)
 log.addHandler(sh)
 
 discord_logger = logging.getLogger('hikari')
-discord_logger.setLevel(logging.CRITICAL)
+discord_logger.setLevel(logging.ERROR)
 discord_logger.addHandler(sh)
 
 log_path = os.path.join("logs", "ogbot.log")

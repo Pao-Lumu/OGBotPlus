@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import socket
 import textwrap as tw
 from typing import List, Tuple, Optional
@@ -19,19 +20,17 @@ from utils.servers.base import BaseServer
 class MinecraftDockerServer(BaseServer):
 
     def __init__(self, bot: OGBotPlus, process: Container, **kwargs):
-        bot.bprint("initialized")
+        logging.debug("initialized dockerized minecraft server")
         super().__init__(bot, process, **kwargs)
-        bot.bprint("super called")
         self.bot.loop.create_task(self.chat_from_game_to_guild())
         self.bot.loop.create_task(self.chat_from_guild_to_game())
         self.bot.loop.create_task(self.update_server_information())
         self.bot.loop.create_task(self.wait_for_death())
-        bot.bprint("taskes created")
         self.motd: str = kwargs.pop('motd', "A Dockerized Minecraft Server")
         self._repr = "Minecraft In Docker"
 
     async def _rcon_connect(self):
-        self.bot.bprint("rcon_connect")
+        logging.debug("rcon_connect")
         if not self.rcon:
             self.rcon = mcrcon.MCRcon(self.ip, self.password, port=self.rcon_port)
         try:
@@ -47,14 +46,8 @@ class MinecraftDockerServer(BaseServer):
             print(e)
             pass
 
-    # async def _move_log(self):
-    #     await self._rcon_connect()
-    #     async with self.rcon_lock:
-    #         self.rcon.command("seed")
-    #     pass
-
     def is_running(self) -> bool:
-        # self.bot.bprint("is_running")
+        logging.debug("is_running")
         self.proc.reload()
         if self.proc.status == 'running':
             return True
@@ -62,57 +55,19 @@ class MinecraftDockerServer(BaseServer):
             return False
 
     async def chat_from_game_to_guild(self):
-        self.bot.bprint("chat_from_game_to_guild")
-        # file_path = path.join(self.working_dir, "logs", "latest.log") if path.exists(
-        #     path.join(self.working_dir, "logs", "latest.log")) else os.path.join(self.working_dir, "server.log")
+        logging.debug("chat_from_game_to_guild")
 
         while self.is_running() and self.bot.is_alive:
             try:
                 await self.read_server_log()
-                # await self.read_server_log(str(file_path), player_filter, server_filter)
-                # await self._move_log()
                 await asyncio.sleep(1)
             except Exception as e:
                 print(e)
                 await asyncio.sleep(.1)
 
-    # async def read_server_log(self, file_path, player_filter, server_filter):
-    #     date = datetime.datetime.now().day
-    #     async with aiofiles.open(file_path) as log:
-    #         await log.seek(0, 2)
-    #         while self.is_running() and self.bot.is_alive:
-    #             lines = await log.readlines()  # Returns instantly
-    #             msgs = list()
-    #             for line in lines:
-    #                 raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
-    #                 raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
-    #
-    #                 if raw_player_msg:
-    #                     mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
-    #                     msgs.append(x)
-    #                     # pass
-    #                 elif raw_server_msg:
-    #                     msgs.append(f'`{raw_server_msg[0].rstrip()}`')
-    #                 else:
-    #                     continue
-    #             if msgs:
-    #                 x = "\n".join(msgs)
-    #                 for chan in self.bot.chat_channels_obj:
-    #                     chan: hikari.GuildTextChannel
-    #                     await chan.send(x, user_mentions=mentioned_users)
-    #             for msg in msgs:
-    #                 self.bot.bprint(f"{self._repr} | {''.join(msg)}")
-    #
-    #             if date != datetime.datetime.now().day:
-    #                 break
-    #             await asyncio.sleep(.75)
-
     async def read_server_log(self):
-        print('reading_server_log')
         watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
                                                         stdout=asyncio.subprocess.PIPE)
-        print(type(watcher.stdout))
-        print('created watcher')
         while self.is_running() and self.bot.is_alive:
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
         pass
@@ -137,18 +92,13 @@ class MinecraftDockerServer(BaseServer):
         msgs = []
         mentioned_users = []
         for line in out:
-            # print(type(line))
-            # print(line)
             raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
             raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
             if raw_player_msg:
-                # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
                 ret = self.check_for_mentions(raw_player_msg[0])
                 mentioned_users += ret[0]
-                x = ret[1]
-                msgs.append((x, mentioned_users))
-                # pass
+                msgs.append((ret[1], mentioned_users))
             elif raw_server_msg:
                 msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
             else:
@@ -177,7 +127,7 @@ class MinecraftDockerServer(BaseServer):
                             break
 
             except Exception as e:
-                self.bot.bprint("ERROR | Server2Guild Mentions Exception caught: " + str(e))
+                logging.critical("ERROR | Server2Guild Mentions Exception caught: " + str(e))
                 pass
         return mentioned_members, message
 
@@ -231,22 +181,22 @@ class MinecraftDockerServer(BaseServer):
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
             except mcrcon.MCRconException as e:
-                print(e)
+                logging.error(e)
                 await asyncio.sleep(2)
             except socket.error as e:
-                print(e)
+                logging.error(e)
                 for chan in self.bot.chat_channels_obj:
                     if chan.channel_id == msg.channel_id:
                         await chan.send("Message failed to send; the bot is broken, tag Evan",
                                         delete_after=10)
                 continue
             except Exception as e:
-                self.bot.bprint("guild2server catchall:")
-                print(type(e))
-                print(e)
+                logging.error("guild2server catchall:")
+                logging.error(type(e))
+                logging.error(e)
 
     async def wait_for_death(self):
-        print('waiting for the server to DIE')
+        # print('waiting for the server to DIE')
         while True:
             self.proc.reload()
             if self.proc.status == 'running':
@@ -255,6 +205,7 @@ class MinecraftDockerServer(BaseServer):
                 await asyncio.sleep(2)
                 break
         self.teardown()
+        logging.debug('killed server object for ' + self.__repr__())
 
     async def update_server_information(self):
         tries = 1
@@ -282,30 +233,27 @@ class MinecraftDockerServer(BaseServer):
                 await self.bot.add_game_chat_info(self.name, cur_status)
                 await self.bot.add_game_presence(self.name, f'{self._repr} {version} {mod_count} {player_count}')
             except BrokenPipeError:
-                self.bot.bprint("Server running a MC version <1.7, or is still starting. (BrokenPipeError)")
+                logging.error("Server running a MC version <1.7, or is still starting. (BrokenPipeError)")
                 await self.sleep_with_backoff(tries)
                 tries += 1
                 pass
             except ConnectionRefusedError:
-                self.bot.bprint("Server running on incorrect port. (ConnectionRefusedError)")
+                logging.error("Server running on incorrect port. (ConnectionRefusedError)")
                 break
             except ConnectionResetError:
-                self.bot.bprint("Connection to server was reset by peer. (ConnectionResetError)")
-                failed = True
+                logging.error("Connection to server was reset by peer. (ConnectionResetError)")
                 pass
             except ConnectionError:
-                self.bot.bprint("General Connection Error. (ConnectionError)")
+                logging.error("General Connection Error. (ConnectionError)")
             except socket.timeout:
-                self.bot.bprint("Server not responding. (socket.timeout)")
-                failed = True
+                logging.error("Server not responding. (socket.timeout)")
             except ForbiddenError:
-                self.bot.bprint("Bot lacks permissions to edit channels. (hikari.ForbiddenError)")
+                logging.error("Bot lacks permissions to edit channels. (hikari.ForbiddenError)")
                 pass
             except NameError:
                 pass
             except Exception as e:
-                self.bot.bprint(f"Failed with Exception {e}")
-                failed = True
+                logging.error(f"Failed with Exception {e}")
                 pass
             finally:
                 await asyncio.sleep(30)
