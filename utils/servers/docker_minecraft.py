@@ -127,9 +127,11 @@ class MinecraftDockerServer(BaseServer):
     async def _read_stream(stream: asyncio.streams.StreamReader, cb):
         lines = []
         while True:
+            print('waiting for line')
             line = await stream.readline()
+            print('got line!')
             if line:
-                lines.append(line)
+                lines.append(line.decode('utf-8'))
             else:
                 await cb(lines)
 
