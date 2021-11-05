@@ -124,13 +124,14 @@ class MinecraftDockerServer(BaseServer):
         pass
 
     @staticmethod
-    async def _read_stream(stream: asyncio.subprocess.PIPE, cb):
+    async def _read_stream(stream: asyncio.streams.StreamReader, cb):
+        lines = []
         while True:
-            line = await stream.readlines()
+            line = await stream.readline()
             if line:
-                await cb(line)
+                lines.append(line)
             else:
-                break
+                await cb(lines)
 
     async def process_server_messages(self, out):
         server_filter = regex.compile(
