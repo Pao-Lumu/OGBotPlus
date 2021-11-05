@@ -122,8 +122,6 @@ class MinecraftDockerServer(BaseServer):
         # watcher = subprocess.Popen([f"/usr/bin/python3", file, self.proc.id], stdout=subprocess.PIPE)
         watcher = subprocess.Popen([f"python3", "utils/docker_logwatch.py", self.proc.id], stdout=subprocess.PIPE)
         print('created watcher')
-        print(self.is_running())
-        print(self.bot.is_alive)
         while self.is_running() and self.bot.is_alive:
             if watcher.stdout:
                 print('got output')
@@ -151,7 +149,7 @@ class MinecraftDockerServer(BaseServer):
                         await chan.send(x, user_mentions=mentioned_users)
                 for msg in msgs:
                     self.bot.bprint(f"{self._repr} | {''.join(msg)}")
-            await asyncio.sleep(.75)
+            await asyncio.sleep(2)
         pass
 
     def check_for_mentions(self, message: str) -> Tuple[List[hikari.snowflakes.Snowflakeish], str]:
