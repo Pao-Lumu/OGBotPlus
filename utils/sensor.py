@@ -51,9 +51,6 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
             print(v)
             cons = [(conn['HostPort'], container) for conn in v]
             running_servers.extend(cons)
-            # if v['HostPort'] in ports:
-            #     running_servers.append((v['HostPort'], container))
-            #     break
             continue
     print("running_servers")
     print(running_servers)
@@ -111,6 +108,7 @@ def find_root_directory(start_dir: str) -> str:
 
 
 def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
+    print('get_game_info')
     if isinstance(process, psutil.Process):
         try:
             cwd = process.cwd()
@@ -164,8 +162,11 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
                         'executable': process.name(),
                         'command': process.cmdline()}
     elif isinstance(process, Container):
-        root = process.labels['com.docker.compose.project.working_dir']
+        print(process)
+        root = Path(process.labels['com.docker.compose.project.working_dir'])
+        print(root)
         toml_path = path.join(root, '.gameinfo.toml')
+        print(toml_path)
 
         defaults = {'name': Path(root).name,
                     'game': process.labels['com.docker.compose.service'],
@@ -175,7 +176,6 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
                     'command': 'docker-compose --compatibility up -d',
                     'compose_folder': root}
     else:
-        cwd = None
         raise RuntimeError('get_game_info was passed an object that was not a Process or a Container')
 
     # if the TOML file exists, load then override the defaults, and save
