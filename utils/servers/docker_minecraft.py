@@ -128,11 +128,11 @@ class MinecraftDockerServer(BaseServer):
         while True:
             line = await stream.readlines()
             if line:
-                cb(line)
+                await cb(line)
             else:
                 break
 
-    def process_server_messages(self, out):
+    async def process_server_messages(self, out):
         server_filter = regex.compile(
             r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
         player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
