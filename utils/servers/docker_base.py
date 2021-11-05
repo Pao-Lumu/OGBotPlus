@@ -42,7 +42,7 @@ class BaseDockerServer(BaseServer):
                     await cb(lines)
                     lines = []
             except asyncio.exceptions.IncompleteReadError:
-                pass
+                continue
             finally:
                 continue
 
