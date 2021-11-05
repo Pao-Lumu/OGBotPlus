@@ -181,6 +181,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
     # if the TOML file exists, load then override the defaults, and save
     # this should correctly add new fields when they are programmed in.
     if os.path.isfile(toml_path):
+        print('is file')
         try:
             with open(toml_path) as file:
 
@@ -196,6 +197,7 @@ def get_game_info(process: Union[psutil.Process, Container]) -> Dict:
             print(f"Exception {type(e)}: {e}")
         return game_info
     else:
+        print('generating file')
         try:
             # if the TOML file doesn't exist, create it, load defaults, and save
             Path(toml_path).touch()
