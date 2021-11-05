@@ -65,10 +65,14 @@ class Game(lightbulb.Plugin):
                 print('test')
                 running_servers = sensor.get_running_servers(self.ports)
                 print(running_servers)
+                # new_servers = []
+                # for port, server in running_servers:
+                #     if isinstance(server, psutil.Process):
+                #     elif :
 
                 new_servers = [(port, server) for port, server in running_servers if
                                (isinstance(server, psutil.Process) and server.pid not in known_running_servers) or
-                               (isinstance(server, Container and server.id not in known_running_servers))]
+                               (isinstance(server, Container) and server.id not in known_running_servers)]
                 print(new_servers)
                 if not new_servers:
                     await asyncio.sleep(2)
