@@ -99,7 +99,9 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
     executable = gameinfo['executable'].lower()
     if isinstance(process, Container):
         process: Container
+        print('test')
         if 'minecraft' in process.labels['com.docker.compose.service']:
+            print('asdfasd')
             return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
     elif isinstance(process, psutil.Process):
         if 'srcds' in executable:
