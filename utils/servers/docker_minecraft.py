@@ -128,7 +128,8 @@ class MinecraftDockerServer(BaseServer):
         lines = []
         while True:
             print('waiting for line')
-            line = await stream.readline()
+            print(stream.at_eof())
+            line = await stream.read()
             print('got line!')
             if line:
                 lines.append(line.decode('utf-8'))
