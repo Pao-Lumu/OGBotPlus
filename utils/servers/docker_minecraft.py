@@ -119,7 +119,7 @@ class MinecraftDockerServer(BaseServer):
         #                                                 stderr=asyncio.subprocess.PIPE)
         print()
         file = os.path.join(os.getcwd(), 'utils', 'docker_logwatch.py')
-        watcher = subprocess.Popen([f"/usr/bin/python3 {file} {self.proc.id}"], stdout=subprocess.PIPE)
+        watcher = subprocess.Popen([f"/usr/bin/python3", file, self.proc.id], stdout=subprocess.PIPE)
         print('created watcher')
         print(self.is_running())
         print(self.bot.is_alive)
