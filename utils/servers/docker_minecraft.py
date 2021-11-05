@@ -111,7 +111,9 @@ class MinecraftDockerServer(BaseServer):
 
     async def read_server_log(self, player_filter, server_filter):
         print('reading_server_log')
-        watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}")
+        watcher = await asyncio.create_subprocess_shell(cmd=f"python3 utils/docker_logwatch.py {self.proc.id}",
+                                                        stdout=asyncio.subprocess.PIPE,
+                                                        stderr=asyncio.subprocess.PIPE)
         print('created watcher')
         print(self.is_running())
         print(self.bot.is_alive)
