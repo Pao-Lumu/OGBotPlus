@@ -10,7 +10,7 @@ def wait_or_when_cancelled(id):
     con: Container = dock.containers.get(id)
     log = con.attach(stdout=True, stream=True, logs=False)
     while True:
-        print(log.next())
+        print(log.next(), file=sys.stdout)
 
 
 wait_or_when_cancelled(sys.argv[1])

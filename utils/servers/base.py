@@ -67,6 +67,7 @@ class BaseServer:
     async def wait_for_death(self):
         x = True
         proc = await asyncio.create_subprocess_shell(cmd=f"python3 utils/watch.py {self.proc.pid}")
+        print('waiting for the server to DIE')
         while x:
             if proc.returncode is None:
                 await asyncio.sleep(5)
