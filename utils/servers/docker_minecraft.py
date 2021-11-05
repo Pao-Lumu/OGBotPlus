@@ -128,28 +128,33 @@ class MinecraftDockerServer(BaseServer):
                 msgs = []
                 mentioned_users = []
                 print('hey')
-                for line in watcher.stdout.readlines():
-                    print(line)
-                    raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
-                    raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
+                try:
+                    for line in watcher.stdout.readlines():
+                        print(line)
+                        raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
+                        raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
 
-                    if raw_player_msg:
-                        # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
-                        ret = self.check_for_mentions(raw_player_msg[0])
-                        mentioned_users += ret[0]
-                        x = ret[1]
-                        msgs.append((x, mentioned_users))
-                        # pass
-                    elif raw_server_msg:
-                        msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
-                    else:
-                        continue
-                if msgs:
-                    x = "\n".join(list(zip(*msgs))[0])
-                    for chan in self.bot.chat_channels_obj:
-                        await chan.send(x, user_mentions=mentioned_users)
-                for msg in msgs:
-                    self.bot.bprint(f"{self._repr} | {''.join(msg)}")
+                        if raw_player_msg:
+                            # mentioned_users, x = self.check_for_mentions(raw_player_msg[0])
+                            ret = self.check_for_mentions(raw_player_msg[0])
+                            mentioned_users += ret[0]
+                            x = ret[1]
+                            msgs.append((x, mentioned_users))
+                            # pass
+                        elif raw_server_msg:
+                            msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
+                        else:
+                            continue
+                    if msgs:
+                        x = "\n".join(list(zip(*msgs))[0])
+                        for chan in self.bot.chat_channels_obj:
+                            await chan.send(x, user_mentions=mentioned_users)
+                    for msg in msgs:
+                        self.bot.bprint(f"{self._repr} | {''.join(msg)}")
+                except Exception as e:
+                    print(type(e))
+                    print(e)
+                    await asyncio.sleep(1)
             await asyncio.sleep(2)
         pass
 
