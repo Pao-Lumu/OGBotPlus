@@ -65,10 +65,6 @@ class Game(lightbulb.Plugin):
                 print('test')
                 running_servers = sensor.get_running_servers(self.ports)
                 print(running_servers)
-                # new_servers = []
-                # for port, server in running_servers:
-                #     if isinstance(server, psutil.Process):
-                #     elif :
 
                 new_servers = [(port, server) for port, server in running_servers if
                                (isinstance(server, psutil.Process) and server.pid not in known_running_servers) or
@@ -101,7 +97,11 @@ class Game(lightbulb.Plugin):
 
 def generate_server_object(bot, process: Union[Container, psutil.Process], gameinfo: dict) -> base.BaseServer:
     executable = gameinfo['executable'].lower()
-    if isinstance(psutil.Process, process):
+    if isinstance(process, Container):
+        process: Container
+        if 'minecraft' in process.labels['com.docker.compose.service']:
+            return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
+    elif isinstance(process, psutil.Process):
         if 'srcds' in executable:
             return source.SourceServer(bot, process, **gameinfo)
         elif gameinfo['game'] == "minecraft" \
@@ -113,9 +113,5 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
             return valheim.ValheimServer(bot, process, **gameinfo)
         elif 'terraria' in executable:
             pass  # nyi
-    if isinstance(Container, process):
-        process: Container
-        if 'minecraft' in process.labels['com.docker.compose.service']:
-            return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
     else:
         print("Didn't find server... hm.")
