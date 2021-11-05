@@ -112,10 +112,6 @@ class MinecraftDockerServer(BaseServer):
         watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
                                                         stdout=asyncio.subprocess.PIPE)
         print(type(watcher.stdout))
-        # print()
-        # file = os.path.join(os.getcwd(), 'utils', 'docker_logwatch.py')
-        # watcher = subprocess.Popen([f"/usr/bin/python3", file, self.proc.id], stdout=subprocess.PIPE)
-        # watcher = subprocess.Popen([f"python3", "utils/docker_logwatch.py", self.proc.id], stdout=subprocess.PIPE)
         print('created watcher')
         while self.is_running() and self.bot.is_alive:
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
@@ -130,9 +126,9 @@ class MinecraftDockerServer(BaseServer):
             print('waiting for line')
             print(stream.at_eof())
             try:
-                test = await asyncio.wait_for(stream.read(), timeout=5)
+                # test = await asyncio.wait_for(stream.read(), timeout=5)
                 print('test')
-                print(test)
+                # print(test)
                 line = await stream.readuntil()
             except asyncio.exceptions.TimeoutError:
                 print("FUCK")
