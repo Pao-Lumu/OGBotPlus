@@ -54,7 +54,7 @@ class MinecraftDockerServer(BaseServer):
     #     pass
 
     def is_running(self) -> bool:
-        self.bot.bprint("is_running")
+        # self.bot.bprint("is_running")
         self.proc.reload()
         if self.proc.status == 'running':
             return True

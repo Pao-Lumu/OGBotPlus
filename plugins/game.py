@@ -64,7 +64,7 @@ class Game(lightbulb.Plugin):
                     self.bot._game_running.set()
                 # print('test')
                 running_servers = sensor.get_running_servers(self.ports)
-                print(running_servers)
+                # print(running_servers)
 
                 new_servers = [(port, server) for port, server in running_servers if
                                (isinstance(server, psutil.Process) and server.pid not in known_running_servers) or

@@ -47,18 +47,18 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
     # print(running_servers)
     for container in result:
         for _, v in container.ports.items():
-            print("v")
-            print(v)
+            # print("v")
+            # print(v)
             asdf = [conn['HostPort'] for conn in v]
-            print(ports)
-            print(asdf in ports)
-            print(int(asdf[0]) in ports)
+            # print(ports)
+            # print(asdf in ports)
+            # print(int(asdf[0]) in ports)
 
             # print([conn['HostPort'] for conn in v if int(conn['HostPort'])])
             running_servers.extend([(conn['HostPort'], container) for conn in v if int(conn['HostPort']) in ports])
 
-    print("running_servers")
-    print(running_servers)
+    # print("running_servers")
+    # print(running_servers)
     return running_servers
 
 
