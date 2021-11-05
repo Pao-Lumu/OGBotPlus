@@ -45,14 +45,16 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
             if x in ports and p not in temp:
                 running_servers.append((x, p))
                 temp.append(p)
-    print(running_servers)
+    # print(running_servers)
     for container in result:
         for _, v in container.ports.items():
+            print("v")
             print(v)
             if v['HostPort'] in ports:
                 running_servers.append((v['HostPort'], container))
                 break
             continue
+    print("running_servers")
     print(running_servers)
     return running_servers
 
