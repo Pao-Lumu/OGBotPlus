@@ -64,10 +64,8 @@ class MinecraftDockerServer(BaseDockerServer):
                 if lines:
                     await cb(lines)
                     lines = []
-            # except asyncio.exceptions.IncompleteReadError:
-            #     pass
-            finally:
-                continue
+            except asyncio.exceptions.IncompleteReadError:
+                pass
 
     async def process_server_messages(self, out):
         server_filter = regex.compile(
