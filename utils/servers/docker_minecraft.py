@@ -57,13 +57,14 @@ class MinecraftDockerServer(BaseDockerServer):
         lines = []
         while True:
             try:
-                line = await asyncio.wait_for(stream.readuntil(), timeout=3)
+                line = await asyncio.wait_for(stream.readuntil(), timeout=1)
                 if line not in lines:
                     lines.append(line.decode('utf-8'))
             except asyncio.exceptions.TimeoutError:
                 if lines:
                     await cb(lines)
                     lines = []
+                    await asyncio.sleep(2)
             except asyncio.exceptions.IncompleteReadError:
                 pass
 
