@@ -52,22 +52,24 @@ class MinecraftDockerServer(BaseDockerServer):
             await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
         pass
 
-    @staticmethod
-    async def _read_stream(stream: asyncio.streams.StreamReader, cb):
+    async def _readlines(self, stream: asyncio.streams.StreamReader):
         lines = []
         while True:
             try:
-                line = await asyncio.wait_for(stream.readuntil(), timeout=1)
+                line = (await asyncio.wait_for(await stream.readline(), .1)).decode('utf-8')
                 if line not in lines:
-                    lines.append(line.decode('utf-8'))
+                    lines.append(line)
             except asyncio.exceptions.TimeoutError:
-                if lines:
-                    await cb(lines)
-                    lines = []
-                    await asyncio.sleep(2)
+                return lines
             except asyncio.exceptions.IncompleteReadError:
                 pass
 
+    async def _read_stream(self, stream: asyncio.streams.StreamReader, cb):
+        while True:
+            await asyncio.sleep(3)
+            lines = await self._readlines(stream)
+            if lines:
+                await cb(lines)
 
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
