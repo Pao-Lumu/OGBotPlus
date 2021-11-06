@@ -64,7 +64,7 @@ class MinecraftDockerServer(BaseDockerServer):
                 if lines:
                     await cb(lines)
                     lines = []
-                    await asyncio.sleep(2)
+                await asyncio.sleep(2)
             except asyncio.exceptions.IncompleteReadError:
                 pass
 
