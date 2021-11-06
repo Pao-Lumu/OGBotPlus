@@ -70,11 +70,14 @@ class MinecraftDockerServer(BaseDockerServer):
         while True:
             await asyncio.sleep(3)
             try:
+                print('asdf')
                 line: str = (await asyncio.wait_for(stream.read(), .1)).decode('utf-8')
+                print('1234')
                 lines = line.split('\r\n')
                 if lines:
                     await cb(lines)
             except asyncio.exceptions.TimeoutError:
+                print('qwer')
                 continue
 
     async def process_server_messages(self, out: List[str]):
