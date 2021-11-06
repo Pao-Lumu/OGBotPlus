@@ -79,6 +79,9 @@ class MinecraftDockerServer(BaseDockerServer):
             except asyncio.exceptions.TimeoutError:
                 print('qwer')
                 continue
+            except Exception as e:
+                print(type(e))
+                print(e)
 
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
