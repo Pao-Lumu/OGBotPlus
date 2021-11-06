@@ -45,6 +45,30 @@ class MinecraftDockerServer(BaseDockerServer):
             logging.error(e)
             pass
 
+    async def read_server_log(self):
+        watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
+                                                        stdout=asyncio.subprocess.PIPE)
+        while self.is_running() and self.bot.is_alive:
+            await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
+        pass
+
+    @staticmethod
+    async def _read_stream(stream: asyncio.streams.StreamReader, cb):
+        lines = []
+        while True:
+            try:
+                line = await asyncio.wait_for(stream.readuntil(), timeout=3)
+                if line not in lines:
+                    lines.append(line.decode('utf-8'))
+            except asyncio.exceptions.TimeoutError:
+                if lines:
+                    await cb(lines)
+                    lines = []
+            # except asyncio.exceptions.IncompleteReadError:
+            #     pass
+            finally:
+                continue
+
     async def process_server_messages(self, out):
         server_filter = regex.compile(
             r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
