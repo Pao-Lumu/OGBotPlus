@@ -90,6 +90,7 @@ class MinecraftDockerServer(BaseDockerServer):
             for chan in self.bot.chat_channels_obj:
                 await chan.send(x, user_mentions=mentioned_users)
         for msg in msgs:
+            print(type(msg))
             self.bot.bprint(f"{self._repr} | {''.join(msg)}")
 
     def remove_nestings(self, iterable):
