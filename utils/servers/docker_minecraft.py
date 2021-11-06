@@ -71,7 +71,7 @@ class MinecraftDockerServer(BaseDockerServer):
             await asyncio.sleep(3)
             try:
                 print('asdf')
-                raw = await asyncio.wait_for(stream.read(n=-1), .5)
+                raw = await asyncio.wait_for(stream.read(n=1700), .5)
                 print(raw)
                 raw_str = raw.decode('utf-8')
                 print('1234')
