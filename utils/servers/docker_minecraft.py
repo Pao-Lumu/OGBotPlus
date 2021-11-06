@@ -71,9 +71,11 @@ class MinecraftDockerServer(BaseDockerServer):
             await asyncio.sleep(3)
             try:
                 print('asdf')
-                line: str = (await asyncio.wait_for(stream.read(), .1)).decode('utf-8')
+                raw = await asyncio.wait_for(stream.read(n=-1), .5)
+                print(raw)
+                raw_str = raw.decode('utf-8')
                 print('1234')
-                lines = line.split('\r\n')
+                lines = raw_str.split('\r\n')
                 if lines:
                     await cb(lines)
             except asyncio.exceptions.TimeoutError:
