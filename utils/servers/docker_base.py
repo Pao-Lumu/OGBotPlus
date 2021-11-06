@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import List
 
 from utils.servers.base import BaseServer
 
@@ -67,5 +68,5 @@ class BaseDockerServer(BaseServer):
         self.teardown()
         logging.debug('killed server object for ' + self.__repr__())
 
-    async def process_server_messages(self, text):
+    async def process_server_messages(self, text: List[str]):
         pass
