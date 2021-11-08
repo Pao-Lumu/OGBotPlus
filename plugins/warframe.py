@@ -236,9 +236,9 @@ Please be more specific.
 
         e = hikari.Embed(title="Steel Path Rewards", description="All currently available Steel Path Rewards\n\n")
         e.set_footer(text="God King Teshin")
-        e.add_field('Weekly Rotating Item',
+        e.add_field('***Weekly Rotating Item***',
                     f"{info['currentReward']['cost']} ({info['currentReward']['cost']} Steel Essence)", inline=True)
-        e.add_field("'Evergreen' Items:", "############")
+        e.add_field("***'Evergreen' Items***", "########################")
 
         for item in info['evergreens']:
             e.add_field(name=f"{item['name']}", value=f"({item['cost']} Steel Essence)", inline=True)
