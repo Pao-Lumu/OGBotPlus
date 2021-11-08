@@ -1,15 +1,14 @@
 import json
 # import pprint
 import random
+import re
 import time
 from datetime import datetime
-import re
 
 import aiohttp
-import pytz
-
 import hikari
 import lightbulb
+import pytz
 
 
 # from utils import helpers
@@ -79,7 +78,7 @@ class Warframe(lightbulb.Plugin):
             e = hikari.Embed(title="Void Trader Offerings", color=c)
             e.set_footer(text="Baro Ki'Teer")
             for offer in info['inventory']:
-                e.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits")
+                e.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits", inline=True)
 
             dukey = "{0} is currently at {1}, and will leave on {2} {3}.".format(info['character'], info['location'],
                                                                                  hr_expiry, info['endString'])
@@ -107,7 +106,7 @@ class Warframe(lightbulb.Plugin):
                 else:
                     misson_type = "(Weekly)"
                 e.add_field(name=f" ~ {challenge['title']} {misson_type} ({challenge['reputation']} standing)",
-                            value=f"~~ {challenge['desc']}", inline=True)
+                            value=f"~~ {challenge['desc']}")
             await ctx.respond(embed=e)
         else:
             await ctx.respond("Nightwave is currently inactive.")
@@ -225,3 +224,22 @@ Please be more specific.
                 Active Sell Orders start at {int(buy_online[0]['platinum'])}p or more."""
 
                 await ctx.respond(embed=e)
+
+    @lightbulb.check(lightbulb.human_only)
+    @lightbulb.command(aliases=['sp', 'steel'])
+    async def steelpath(self, ctx):
+        """Lists all current Steel Path rewards"""
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://api.warframestat.us/pc/steelPath') as resp:
+                info = await resp.json()
+
+        e = hikari.Embed(title="Steel Path Rewards", description="All currently available Steel Path Rewards\n\n")
+        e.set_footer(text="God King Teshin")
+        e.add_field('Weekly Rotating Item',
+                    f"{info['currentReward']['cost']} ({info['currentReward']['cost']} Steel Essence)", inline=True)
+        e.add_field("'Evergreen' Items:", "############")
+
+        for item in info['evergreens']:
+            e.add_field(name=f"{item['name']}", value=f"({item['cost']} Steel Essence)", inline=True)
+        await ctx.respond(embed=e)
