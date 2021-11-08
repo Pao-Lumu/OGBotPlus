@@ -238,7 +238,7 @@ Please be more specific.
         e.set_footer(text="God King Teshin")
         e.add_field('***Weekly Rotating Item***',
                     f"{info['currentReward']['name']} ({info['currentReward']['cost']} Steel Essence)", inline=True)
-        e.add_field("***'Evergreen' Items***", "`~~~~~~~~~~~~~~~~~~~~~~~~`")
+        e.add_field("`~~~~~~~~~~~~~~~~~~~~~~~~`", "***'Evergreen' Items***")
 
         for item in info['evergreens']:
             e.add_field(name=f"{item['name']}", value=f"({item['cost']} Steel Essence)", inline=True)
