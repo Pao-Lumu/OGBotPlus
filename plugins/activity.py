@@ -86,7 +86,7 @@ class Activity(lightbulb.Plugin):
 
     @lightbulb.listener(PresenceUpdateEvent)
     async def on_presence_update(self, event: PresenceUpdateEvent):
-        if event.get_user().is_bot:
+        if not event.get_user() or event.get_user().is_bot:
             return
         if event.presence and event.presence.guild_id not in self.bot.cfg['main_guilds']:
             return
