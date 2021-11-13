@@ -1,6 +1,6 @@
 import psutil
 
-from utils.servers.a2s import A2SCompatibleServer
+from utils.servers.a2s_compatible import A2SCompatibleServer
 
 
 class ValheimServer(A2SCompatibleServer):
