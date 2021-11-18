@@ -219,7 +219,7 @@ Please be more specific.
                 e.set_author(name='Warframe.market price check')
                 e.set_image('https://warframe.market/static/assets/' + item['icon'])
                 e.set_footer(text='warframe.market')
-                e.description = f"""{vol} {item['en']['item_name']}s sold in the past 48hrs, for {round(avg)}p on average.
+                e.description = f"""{vol} {item['en']['item_name']} sold in the past 48hrs, for {round(avg)}p on average.
                 Active Buy Orders start at {int(sell_online[0]['platinum'])}p or less.
                 Active Sell Orders start at {int(buy_online[0]['platinum'])}p or more."""
 
