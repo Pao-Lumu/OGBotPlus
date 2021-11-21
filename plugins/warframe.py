@@ -1,3 +1,4 @@
+import asyncio
 import json
 # import pprint
 import pprint
@@ -42,6 +43,12 @@ class Warframe(lightbulb.Plugin):
             j = json.loads(html)['payload']['items']
             return j
 
+    async def get_item_info(self, name):
+        async with aiohttp.ClientSession() as session:
+            html = await self.fetch(session, f"https://api.warframe.market/v1/items/{name}")
+            j = json.loads(html)
+            return j
+
     async def get_item_orders(self, name):
         async with aiohttp.ClientSession() as session:
             html = await self.fetch(session, f"https://api.warframe.market/v1/items/{name}/orders")
@@ -79,7 +86,8 @@ class Warframe(lightbulb.Plugin):
             e = hikari.Embed(title="Void Trader Offerings", color=c)
             e.set_footer(text="Baro Ki'Teer")
             for offer in info['inventory']:
-                e.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits", inline=True)
+                e.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits",
+                            inline=True)
 
             dukey = "{0} is currently at {1}, and will leave on {2} {3}.".format(info['character'], info['location'],
                                                                                  hr_expiry, info['endString'])
@@ -156,6 +164,7 @@ class Warframe(lightbulb.Plugin):
         if time.mktime(
                 datetime.utcnow().timetuple()) > self.wf_mark_last_update + 60 * 60 * 60 or not self.wf_mark_items:
             self.wf_mark_items = await self.get_items()
+            # pprint.pprint(self.wf_mark_items)
             self.wf_mark_last_update = time.mktime(datetime.utcnow().timetuple())
             with open('data/wf_market_items.json', 'w') as file:
                 json.dump({"items": self.wf_mark_items, "last_update": self.wf_mark_last_update}, file)
@@ -181,8 +190,9 @@ Please be more specific.
             pprint.pprint(fetchable_items)
             for item_name, name in fetchable_items:
                 try:
-                    item_stats = await self.get_item_statistics(name)
-                    item_orders = await self.get_item_orders(name)
+                    item_stats, item_orders, item_info = await asyncio.gather(
+                        *[self.get_item_statistics(name), self.get_item_orders(name), self.get_item_info(name)])
+                    item_info = [x for x in item_info['payload']['item']['items_in_set'] if x['url_name'] == name][0]
                 except NameError as e:
                     await ctx.respond(e)
                     return
@@ -223,9 +233,14 @@ Please be more specific.
                 e.set_author(name='Warframe.market price check')
                 e.set_image('https://warframe.market/static/assets/' + item['icon'])
                 e.set_footer(text='warframe.market')
-                e.add_field("Average price (48hrs)", f"{round(avg)} platinum")
-                e.add_field("Buy Orders", f"start at {int(sell_online[0]['platinum'])}p or less")
-                e.add_field("Sell Orders", f"start at {int(buy_online[0]['platinum'])}p or more")
+                e.add_field("Average price (48hrs)", f"{round(avg)}p", inline=True)
+                e.add_field("Trade Volume (48hrs)", f"{vol} items traded in the last 48hrs", inline=True)
+                if not 'set' in item['url_name']:
+                    e.add_field("Ducat/Plat Ratio", f"{round(int(item_info['ducats'])/avg, 1)} ducats per plat")
+                else:
+                    e.add_field("-=-=-=-=-=-=-=-=-", f"-=-=-=-=-=-=-=-=-")
+                e.add_field("Buy Offers", f"start at {int(sell_online[0]['platinum'])}p or less", inline=True)
+                e.add_field("Sell Offers", f"start at {int(buy_online[0]['platinum'])}p or more", inline=True)
 
                 # e.description = f"""{vol} {item['en']['item_name']} sold in the past 48hrs, for {round(avg)}p on average.
                 # Active Buy Orders start at {int(sell_online[0]['platinum'])}p or less.
