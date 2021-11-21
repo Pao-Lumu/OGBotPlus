@@ -1,5 +1,6 @@
 import json
 # import pprint
+import pprint
 import random
 import re
 import time
@@ -147,7 +148,7 @@ class Warframe(lightbulb.Plugin):
             return
 
     @lightbulb.check(lightbulb.human_only)
-    @lightbulb.command(aliases=["pc"])
+    @lightbulb.command(aliases=["pc", "PC", "Pc", "pC"])
     @lightbulb.cooldown(5, 5, lightbulb.Bucket)
     async def pricecheck(self, ctx, *, item):
         """Check prices of items on warframe.market"""
@@ -174,7 +175,10 @@ class Warframe(lightbulb.Plugin):
 Search matched too many items.
 Please be more specific.
 (Found {len(fetchable_items)} items matching search)""")
+        elif len(fetchable_items) < 1:
+            await ctx.respond(f"""No item with that name found. Check spelling?""")
         else:
+            pprint.pprint(fetchable_items)
             for item_name, name in fetchable_items:
                 try:
                     item_stats = await self.get_item_statistics(name)
@@ -219,9 +223,13 @@ Please be more specific.
                 e.set_author(name='Warframe.market price check')
                 e.set_image('https://warframe.market/static/assets/' + item['icon'])
                 e.set_footer(text='warframe.market')
-                e.description = f"""{vol} {item['en']['item_name']} sold in the past 48hrs, for {round(avg)}p on average.
-                Active Buy Orders start at {int(sell_online[0]['platinum'])}p or less.
-                Active Sell Orders start at {int(buy_online[0]['platinum'])}p or more."""
+                e.add_field("Average price (48hrs)", f"{round(avg)} platinum")
+                e.add_field("Buy Orders", f"start at {int(sell_online[0]['platinum'])}p or less")
+                e.add_field("Sell Orders", f"start at {int(buy_online[0]['platinum'])}p or more")
+
+                # e.description = f"""{vol} {item['en']['item_name']} sold in the past 48hrs, for {round(avg)}p on average.
+                # Active Buy Orders start at {int(sell_online[0]['platinum'])}p or less.
+                # Active Sell Orders start at {int(buy_online[0]['platinum'])}p or more."""
 
                 await ctx.respond(embed=e)
 
