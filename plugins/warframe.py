@@ -13,9 +13,6 @@ import lightbulb
 import pytz
 
 
-# from utils import helpers
-
-
 class Warframe(lightbulb.Plugin):
     def __init__(self, bot):
         self.bot = bot
@@ -77,14 +74,21 @@ class Warframe(lightbulb.Plugin):
 
         c = hikari.Colour.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         if not info['active']:
-            e = hikari.Embed(title='Void Trader', color=c,
-                             description="{} will arrive at {} on {} ({}) and will stay until {} ({})".format(
-                                 info['character'], info['location'], hr_active, info['startString'], hr_expiry,
-                                 info['endString']))
+            e = hikari.Embed(title=f'{info["character"]} (Void Trader)', color=c,
+                             # description="{} will arrive at {} on {} ({}) and will stay until {} ({})".format(
+                             #     info['character'], info['location'], hr_active, info['startString'], hr_expiry,
+                             #     info['endString'])
+                             )
+            e.add_field("Location", info['location'])
+            e.add_field("Arrival Date", hr_active, inline=True)
+            e.add_field("Time until Arrival", info['startString'], inline=True)
+            e.add_field("-=-=-=-=-=-=-=-=-", "-=-=-=-=-=-=-=-=-")
+            e.add_field("Departure Date", hr_expiry, inline=True)
+            e.add_field("Time until Departure", info['endString'], inline=True)
             await ctx.respond(embed=e)
         else:
             e = hikari.Embed(title="Void Trader Offerings", color=c)
-            e.set_footer(text="Baro Ki'Teer")
+            e.set_footer(text=info["character"])
             for offer in info['inventory']:
                 e.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits",
                             inline=True)
@@ -107,15 +111,20 @@ class Warframe(lightbulb.Plugin):
             e = hikari.Embed(title="Nightwave Challenges", description="All currently active Nightwave challenges\n\n")
             e.set_footer(text="Nora Night")
 
+            last_mission_type = ""
             for challenge in info['activeChallenges']:
                 if 'isDaily' in challenge.keys() and challenge['isDaily']:
-                    misson_type = "(Daily)"
+                    misson_type = "Daily"
                 elif challenge['isElite']:
-                    misson_type = "(Elite Weekly)"
+                    misson_type = "Elite Weekly"
                 else:
-                    misson_type = "(Weekly)"
-                e.add_field(name=f" ~ {challenge['title']} {misson_type} ({challenge['reputation']} standing)",
-                            value=f"~~ {challenge['desc']}")
+                    misson_type = "Weekly"
+
+                if misson_type != last_mission_type:
+                    e.add_field("-=-=-=-=-=-=-=-=-", f"***{misson_type} Missions***")
+                e.add_field(name=f"{challenge['title']} ({challenge['reputation']} standing)",
+                            value=f"{challenge['desc']}", inline=True)
+                last_mission_type = misson_type
             await ctx.respond(embed=e)
         else:
             await ctx.respond("Nightwave is currently inactive.")
@@ -136,7 +145,7 @@ class Warframe(lightbulb.Plugin):
                 if len(info) > i + 1 and (
                         last_rift['tierNum'] != rift['tierNum']):
                     e.add_field(
-                        name='`~~~~~~~~~~~~~~~~~~~~~~~`',
+                        name='-=-=-=-=-=-=-=-=-',
                         value=f"***{rift['tier']} {'Rifts' if not rift['isStorm'] else 'Void Storms'}***",
                         inline=False)
                     last_rift = rift
@@ -235,16 +244,18 @@ Please be more specific.
                 e.set_footer(text='warframe.market')
                 e.add_field("Average price (48hrs)", f"{round(avg)}p", inline=True)
                 e.add_field("Trade Volume (48hrs)", f"{vol} items traded in the last 48hrs", inline=True)
-                if not 'set' in item['url_name']:
-                    e.add_field("Ducat/Plat Ratio", f"{round(int(item_info['ducats'])/avg, 1)} ducats per plat")
+                if item_info.get('ducats', None):
+                    e.add_field("Ducat/Plat Ratio", f"{round(int(item_info['ducats']) / avg, 1)} ducats per plat")
                 else:
                     e.add_field("-=-=-=-=-=-=-=-=-", f"-=-=-=-=-=-=-=-=-")
-                e.add_field("Buy Offers", f"start at {int(sell_online[0]['platinum'])}p or less", inline=True)
-                e.add_field("Sell Offers", f"start at {int(buy_online[0]['platinum'])}p or more", inline=True)
-
-                # e.description = f"""{vol} {item['en']['item_name']} sold in the past 48hrs, for {round(avg)}p on average.
-                # Active Buy Orders start at {int(sell_online[0]['platinum'])}p or less.
-                # Active Sell Orders start at {int(buy_online[0]['platinum'])}p or more."""
+                if sell_online:
+                    e.add_field("Buy Offers", f"start at {int(sell_online[0]['platinum'])}p or less", inline=True)
+                else:
+                    e.add_field("Buy Offers", "N/A (No offers from online players)", inline=True)
+                if buy_online:
+                    e.add_field("Sell Offers", f"start at {int(buy_online[0]['platinum'])}p or more", inline=True)
+                else:
+                    e.add_field("Sell Offers", "N/A (No offers from online players)", inline=True)
 
                 await ctx.respond(embed=e)
 
@@ -258,10 +269,10 @@ Please be more specific.
                 info = await resp.json()
 
         e = hikari.Embed(title="Steel Path Rewards", description="All currently available Steel Path Rewards\n\n")
-        e.set_footer(text="God King Teshin")
+        e.set_footer(text="Teshin Dax")
         e.add_field('***Weekly Rotating Item***',
                     f"{info['currentReward']['name']} ({info['currentReward']['cost']} Steel Essence)", inline=True)
-        e.add_field("`~~~~~~~~~~~~~~~~~~~~~~~~`", "***'Evergreen' Items***")
+        e.add_field("-=-=-=-=-=-=-=-=-", "***'Evergreen' Items***")
 
         for item in info['evergreens']:
             e.add_field(name=f"{item['name']}", value=f"({item['cost']} Steel Essence)", inline=True)
