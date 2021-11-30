@@ -28,25 +28,27 @@ class BaseDockerServer(BaseServer):
         watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
                                                         stdout=asyncio.subprocess.PIPE)
         while self.is_running() and self.bot.is_alive:
-            await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
+            await asyncio.wait([self._read_stream(self, watcher.stdout, self.process_server_messages)])
         pass
 
     @staticmethod
-    async def _read_stream(stream: asyncio.streams.StreamReader, cb):
-        lines = []
+    async def _read_stream(self, stream: asyncio.streams.StreamReader, cb):
         while True:
+            await asyncio.sleep(3)
             try:
-                line = await asyncio.wait_for(stream.readuntil(), timeout=3)
-                if line not in lines:
-                    lines.append(line.decode('utf-8'))
-            except asyncio.exceptions.TimeoutError:
+                raw = await asyncio.wait_for(stream.read(n=7000), .5)
+                raw_str = raw.decode('utf-8')
+                lines = raw_str.split('\r\n')
                 if lines:
                     await cb(lines)
-                    lines = []
-            # except asyncio.exceptions.IncompleteReadError:
-            #     pass
-            finally:
+            except asyncio.exceptions.TimeoutError:
                 continue
+            except Exception as e:
+                print(type(e))
+                print(e)
+
+    async def process_server_messages(self, text: List[str]):
+        pass
 
     def is_running(self) -> bool:
         logging.debug("is_running")
@@ -67,6 +69,3 @@ class BaseDockerServer(BaseServer):
                 break
         self.teardown()
         logging.debug('killed server object for ' + self.__repr__())
-
-    async def process_server_messages(self, text: List[str]):
-        pass

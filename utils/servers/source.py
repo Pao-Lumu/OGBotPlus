@@ -1,14 +1,13 @@
 import asyncio
 import textwrap as tw
 
-import a2s
 import psutil
 import regex
 import valve.rcon as valvercon
 from hikari.errors import ForbiddenError
 from hikari.events import GuildMessageCreateEvent
 
-from utils.servers.a2s import A2SCompatibleServer
+from utils.servers.a2s_compatible import A2SCompatibleServer
 
 valvercon.RCONMessage.ENCODING = "utf-8"
 
