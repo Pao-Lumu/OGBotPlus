@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 import re
 from os import path
@@ -46,17 +47,20 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
                 temp.append(p)
     # print(running_servers)
     for container in result:
-        for _, v in container.ports.items():
+        for temp, v in container.ports.items():
             # print("v")
             # print(v)
-            asdf = [conn['HostPort'] for conn in v]
+            # asdf = [conn['HostPort'] for conn in v if v]
             # print(ports)
             # print(asdf in ports)
             # print(int(asdf[0]) in ports)
 
             # print([conn['HostPort'] for conn in v if int(conn['HostPort'])])
-            running_servers.extend([(conn['HostPort'], container) for conn in v if int(conn['HostPort']) in ports])
-
+            if v:
+                running_servers.extend([(conn['HostPort'], container) for conn in v if int(conn['HostPort']) in ports])
+                logging.debug(f"Key: {temp}; Value: {v}")
+            else:
+                logging.debug(temp)
     # print("running_servers")
     # print(running_servers)
     return running_servers

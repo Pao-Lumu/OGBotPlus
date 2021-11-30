@@ -28,27 +28,26 @@ class Chat(lightbulb.Plugin):
     @lightbulb.listener(hikari.VoiceStateUpdateEvent)
     async def on_update_voice_state(self, event: hikari.VoiceStateUpdateEvent):
         guild = self.bot.cache.get_guild(event.guild_id)
-        if event.state.channel_id is None:
+        if event.state.channel_id is None:  # on channel leave
             # User left voice channel -> remove text channel role
             chan = self.bot.cache.get_guild_channel(event.old_state.channel_id)
-            sql_result = self.cursor.execute("SELECT * FROM channels WHERE (guild_id =:guild AND voice_channel_id =:chan_id)",
-                                             {"guild": int(guild.id), "chan_id": int(chan.id)})
+            sql_result = self.get_matching_entry(int(guild.id), int(chan.id))
             [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
-        elif event.old_state is None:
+        elif event.old_state is None:  # on channel join
             # User joined voice channel -> add text channel role
             chan = self.bot.cache.get_guild_channel(event.state.channel_id)
-            sql_result = self.cursor.execute("SELECT * FROM channels WHERE (guild_id =:guild AND voice_channel_id =:chan_id)",
-                                             {"guild": int(guild.id), "chan_id": int(chan.id)})
+
+            sql_result = self.get_matching_entry(int(guild.id), int(chan.id))
+
             [await event.state.member.add_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result]
-        elif event.old_state.channel_id != event.state.channel_id:
+        elif event.old_state.channel_id != event.state.channel_id:  # on channel swap
             chan1 = self.bot.cache.get_guild_channel(event.old_state.channel_id)
-            sql_result1 = self.cursor.execute("SELECT * FROM channels WHERE (guild_id =:guild AND voice_channel_id =:chan_id)",
-                                              {"guild": int(guild.id), "chan_id": int(chan1.id)})
+            sql_result1 = self.get_matching_entry(int(guild.id), int(chan1.id))
+
             [await event.state.member.remove_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result1]
 
             chan2 = self.bot.cache.get_guild_channel(event.state.channel_id)
-            sql_result2 = self.cursor.execute("SELECT * FROM channels WHERE (guild_id =:guild AND voice_channel_id =:chan_id)",
-                                              {"guild": int(guild.id), "chan_id": int(chan2.id)})
+            sql_result2 = self.get_matching_entry(int(guild.id), int(chan2.id))
 
             [await event.state.member.add_role(guild.get_role(role_id)) for _, _, _, role_id in sql_result2]
 
@@ -121,7 +120,8 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
                 tc_name = f"deleted or inaccessible text chat with id `{matched_text_id}`."
 
         else:
-            em = embeds.success_embed(f"Paired voice chat `{voice.name}` with text chat `{text_channel.name}` for Role `{role.name}`")
+            em = embeds.success_embed(
+                f"Paired voice chat `{voice.name}` with text chat `{text_channel.name}` for Role `{role.name}`")
             await ctx.respond(embed=em)
             self.cursor.execute("INSERT INTO channels VALUES (?,?,?,?)",
                                 (guild.id, voice.id, text_channel.id, role.id))
@@ -174,5 +174,10 @@ Type `>unpair {matched_voice_id}` to unpair them.""")
             break
         else:
             channel = guild.get_channel(channel_id)
-            em = embeds.info_embed(f"{'Voice' if channel.type == 2 else 'Text'} channel `{channel.name}`is not paired to any {'voice' if channel.type == 0 else 'text'} channel.")
+            em = embeds.info_embed(
+                f"{'Voice' if channel.type == 2 else 'Text'} channel `{channel.name}`is not paired to any {'voice' if channel.type == 0 else 'text'} channel.")
             await ctx.respond(embed=em)
+
+    def get_matching_entry(self, guild_id: int, channel_id: int):
+        return self.cursor.execute("SELECT * FROM channels WHERE (guild_id =:guild AND voice_channel_id =:chan_id)",
+                                   {"guild": guild_id, "chan_id": channel_id})
