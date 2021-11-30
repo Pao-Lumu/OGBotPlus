@@ -29,7 +29,7 @@ class Game(lightbulb.Plugin):
 
     @lightbulb.listener(hikari.ShardReadyEvent)
     async def on_start(self, _):
-        logging.debug("starting game plugin")
+        logging.info("starting game plugin...")
         if not self.loop:
             self.loop = asyncio.get_running_loop()
             asyncio.ensure_future(self.bot.set_game_presence())
@@ -54,30 +54,29 @@ class Game(lightbulb.Plugin):
 
     async def server_running_loop(self):
         known_running_servers = []
+        logging.info("Initializing server-check loop...")
         while self.bot.is_alive:
             any_server_running = sensor.are_servers_running(self.ports)
-            # print("IS A SERVER RUN???")
-            # print(any_server_running)
             if any_server_running:
-                logging.debug('At least 1 server is running. Checking...')
+                logging.info('At least 1 server is running. Checking...')
                 if not self.bot.is_game_running:
                     self.bot._game_stopped.clear()
                     self.bot._game_running.set()
                 # print('test')
                 running_servers = sensor.get_running_servers(self.ports)
-                logging.debug(f"Currently running server(s): {running_servers}")
+                logging.info(f"Currently running server(s): {running_servers}")
 
                 new_servers = [(port, server) for port, server in running_servers if
                                (isinstance(server, psutil.Process) and server.pid not in known_running_servers) or
                                (isinstance(server, Container) and server.id not in known_running_servers)]
-                logging.debug(f"New server(s): {new_servers}")
+                logging.info(f"New server(s): {new_servers}")
                 if not new_servers:
                     await asyncio.sleep(2)
                     continue
                 for port, server in new_servers:
                     # print("test 2")
                     data = sensor.get_game_info(server)
-                    logging.debug(f"Got server data: {data}")
+                    logging.info(f"Got server data: {data}")
                     self.bot.games[str(port)] = generate_server_object(bot=self.bot,
                                                                        process=server,
                                                                        gameinfo=data)
