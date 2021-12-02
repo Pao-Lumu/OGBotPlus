@@ -10,7 +10,7 @@ from colorama import Fore
 from utils.servers.base import BaseServer
 
 
-class OGBotPlus(lightbulb.Bot, ABC):
+class OGBotPlus(lightbulb.BotApp, ABC):
     def __init__(self,
                  config: dict,
                  intents: hikari.Intents,

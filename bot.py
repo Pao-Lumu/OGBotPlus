@@ -10,28 +10,12 @@ import pyfiglet
 import toml
 
 from OGBotPlus import OGBotPlus
-from plugins.activity import Activity
-from plugins.admin import Admin
-from plugins.chat import Chat
-from plugins.memes import Memes
-from plugins.santa import Santa
-from plugins.warframe import Warframe
-
-plugins = [
-    Warframe,
-    Santa,
-    Memes,
-    Chat,
-    Activity,
-    Admin,
-]
-
-if os.name != "nt":
-    import uvloop
-    from plugins.game import Game
-
-    plugins.append(Game)
-    uvloop.install()
+import plugins.activity as activity
+import plugins.admin as admin
+import plugins.chat as chat
+import plugins.memes as memes
+import plugins.santa as santa
+import plugins.warframe as warframe
 
 # Logging setup
 
@@ -103,7 +87,7 @@ def load_config() -> dict:
 
 config = load_config()
 
-# bot = lightbulb.Bot(token=config['credentials']['token'], intents=hikari.Intents.ALL, slash_commands_only=True)
+# bot = lightbulb.BotApp(token=config['credentials']['token'], intents=hikari.Intents.ALL, slash_commands_only=True)
 bot = OGBotPlus(config=config['bot_configuration'],
                 token=config['credentials']['token'],
                 intents=hikari.Intents.ALL,
@@ -112,6 +96,21 @@ bot = OGBotPlus(config=config['bot_configuration'],
                 ignore_bots=True,
                 banner=None)
 
+plugins = [
+    bot.add_plugin(warframe.plugin),
+    bot.add_plugin(santa.plugin),
+    bot.add_plugin(memes.plugin),
+    bot.add_plugin(chat.plugin),
+    bot.add_plugin(activity.plugin),
+    bot.add_plugin(admin.plugin),
+]
+
+if os.name != "nt":
+    import uvloop
+    import plugins.game as game
+
+    bot.add_plugin(game.plugin)
+    uvloop.install()
 
 @bot.listen(hikari.ShardReadyEvent)
 async def on_ready(event: hikari.ShardReadyEvent):
@@ -129,18 +128,18 @@ Chat Channel: {bot.chat_channels}  |  Meme Channel: {bot.santa_channel}
 #     logging.warning(exc_info=event.exc_info)
 #     pass
 
-@bot.listen(lightbulb.events.CommandErrorEvent)
-async def on_command_error(event: lightbulb.events.CommandErrorEvent):
-    print("error")
-    print(event.exception)
-    print(type(event.exception.args[0]))
-    print(dir(event.exception.args[0]))
-    print(type(event.exception.args[1]))
-    print(dir(event.exception.args[1]))
-    await event.message.respond(
-        f"Command `{event.exception.args[0].qualified_name}` errored: missing argument(s) {event.exception.args[1]}")
-    pass
+# @bot.listen(lightbulb.events.CommandErrorEvent)
+# async def on_command_error(event: lightbulb.events.CommandErrorEvent):
+#     print("error")
+#     print(event.exception)
+#     print(type(event.exception.args[0]))
+#     print(dir(event.exception.args[0]))
+#     print(type(event.exception.args[1]))
+#     print(dir(event.exception.args[1]))
+#     await event.message.respond(
+#         f"Command `{event.exception.args[0].qualified_name}` errored: missing argument(s) {event.exception.args[1]}")
+#     pass
 
 
-[bot.add_plugin(plugin(bot)) for plugin in plugins]
+# [bot.add_plugin(thing) for thing in plugins]
 bot.run()
