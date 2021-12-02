@@ -1,8 +1,6 @@
 import asyncio
 
 import a2s
-import valve.rcon
-import valve.source.a2s
 from hikari.errors import ForbiddenError
 
 from utils.servers.base import BaseServer
@@ -30,8 +28,6 @@ class A2SCompatibleServer(BaseServer):
                 await self.bot.add_game_presence(self.name, status)
             except ForbiddenError:
                 print("Bot lacks permission to edit channels. (hikari.ForbiddenError)")
-            except valve.source.a2s.NoResponseError:
-                print("No Response from server before timeout (NoResponseError)")
             except Exception as e:
                 print(f"Error: {e} {type(e)}")
             finally:
