@@ -1,7 +1,8 @@
 import asyncio
 import datetime
 from abc import ABC
-from typing import Dict, List, Iterable, Any, Union
+from typing import Dict, List, Iterable, Any, Union, DefaultDict
+from collections import defaultdict
 
 import hikari
 import lightbulb
@@ -25,6 +26,7 @@ class OGBotPlus(lightbulb.BotApp, ABC):
         self.games: Dict[str, BaseServer] = dict()
         self.game_statuses: Dict[str, str] = {}
         self.game_chat_info: Dict[str, str] = {}
+        self.pending_chat_messages: DefaultDict[str, List[str]] = defaultdict(default_factory=lambda: [])
         self._game_running = asyncio.Event()
         self._game_stopped = asyncio.Event()
         super().__init__(intents=intents, prefix=prefix, owner_ids=owner_ids, ignore_bots=ignore_bots, **kwargs)

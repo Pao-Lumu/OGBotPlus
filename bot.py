@@ -112,6 +112,7 @@ if os.name != "nt":
     bot.add_plugin(game.plugin)
     uvloop.install()
 
+
 @bot.listen(hikari.ShardReadyEvent)
 async def on_ready(event: hikari.ShardReadyEvent):
     bot_user = bot.get_me()

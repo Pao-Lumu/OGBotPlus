@@ -12,7 +12,7 @@ from docker.models.containers import Container
 
 # from OGBotPlus import OGBotPlus
 from utils import sensor
-from utils.servers import minecraft, valheim, source, base, docker_minecraft as mc_docker
+from utils.servers import minecraft, valheim, source, base, docker_minecraft as mc_docker, docker_valheim as vh_docker, docker_terraria as tr_docker
 
 plugin = lightbulb.Plugin("Game")
 
@@ -22,7 +22,9 @@ if psutil.WINDOWS:
 loop = None
 check_server = None
 get_current_status = None
+running_servers =[]
 ports = []
+game_chat_lock = asyncio.Lock()
 
 
 @plugin.listener(hikari.ShardReadyEvent)
@@ -58,6 +60,7 @@ async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreate
 
 async def server_running_loop():
     known_running_servers = []
+    global running_servers
     logging.info("Initializing server-check loop...")
     while plugin.app.is_alive:
         any_server_running = sensor.are_servers_running(ports)
@@ -106,6 +109,10 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
         if 'minecraft' in process.labels['com.docker.compose.service']:
             print('asdfasd')
             return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
+        elif 'terraria' in executable:
+            return tr_docker.TerrariaDockerServer(bot, process, **gameinfo)
+        elif 'valheim' in executable:
+            return vh_docker.ValheimDockerServer(bot, process, **gameinfo)
     elif isinstance(process, psutil.Process):
         if 'srcds' in executable:
             return source.SourceServer(bot, process, **gameinfo)
@@ -116,7 +123,16 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
             return minecraft.MinecraftServer(bot, process, **gameinfo)
         elif 'valheim_server' in executable:
             return valheim.ValheimServer(bot, process, **gameinfo)
-        elif 'terraria' in executable:
-            pass  # nyi
     else:
         print("Didn't find server... hm.")
+
+
+async def send_chat_messages():
+    # plugin.app.pending_chat_messages
+
+    async with game_chat_lock:
+        for chan in plugin.app.bot.chat_channels_obj:
+            # await chan.send(x, user_mentions=mentioned_users)
+            # join all messages into one msg before here
+            # then send them, organizing them into the correct games.
+            await chan.send(x, user_mentions=mentioned_users)

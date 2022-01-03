@@ -20,7 +20,7 @@ class BaseServer:
         self.working_dir: str = kwargs.pop('folder', '')
         self._repr: str = "a game"
         self.loop = asyncio.get_running_loop()
-
+        self.message_lock: asyncio.Lock = kwargs['message_lock']
         self.rcon_port: int = int(kwargs.pop('rcon_port', 22232))
         self.rcon = None
         self.rcon_lock = asyncio.Lock()
@@ -99,6 +99,9 @@ class BaseServer:
                 await asyncio.sleep(3)
                 x = False
         self.teardown()
+
+    async def _queue_message(self, server_id: str, msg: str):
+        self.bot.pending_chat_messages[server_id].append(msg)
 
     def teardown(self):
         self.bot.games.pop(str(self.port), None)

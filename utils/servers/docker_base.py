@@ -9,7 +9,7 @@ class BaseDockerServer(BaseServer):
     def __init__(self, bot, process, **kwargs):
         super(BaseDockerServer, self).__init__(bot, process, **kwargs)
 
-        if self.__class__.__name__ == 'BaseServer':
+        if self.__class__.__name__ == 'BaseDockerServer':
             self.loop.create_task(self.update_server_information())
             self.loop.create_task(self.wait_for_death())
 
