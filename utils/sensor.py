@@ -35,10 +35,10 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
     result = docker_client.containers.list(filters={'status': 'running'})
     # print("intial dingus")
 
-    for p in psutil.process_iter(attrs=['connections']):
-        if not p.info['connections']:
+    for p in psutil.process_iter():
+        if not p.connetions(kind='inet4'):
             continue
-        connections = [y.laddr.port for y in p.info['connections']]
+        connections = [y.laddr.port for y in p.connetions(kind='inet4')]
         connections.sort()
         for x in connections:
             # print(x)
