@@ -41,7 +41,7 @@ async def on_start(_):
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
-async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
+async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent):
     if event.author.is_bot:
         return
     if event.channel_id in plugin.app.chat_channels:
