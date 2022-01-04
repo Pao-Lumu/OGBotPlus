@@ -60,7 +60,8 @@ def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Proces
 
             # print([conn['HostPort'] for conn in v if int(conn['HostPort'])])
             if v:
-                running_servers.extend([(conn['HostPort'], container) for conn in v if int(conn['HostPort']) in ports])
+                running_servers.extend([(conn['HostPort'], container) for conn in v if
+                                        int(conn['HostPort']) in ports and ':' not in conn['HostIp']])
                 logging.debug(f"Key: {temp}; Value: {v}")
             else:
                 logging.debug(temp)
