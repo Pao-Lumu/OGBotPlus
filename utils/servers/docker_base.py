@@ -81,6 +81,5 @@ class BaseDockerServer(BaseServer):
             except docker.errors.NotFound:
                 logging.info("Docker containter no longer found. Possibly shut down.")
                 pass
-            finally:
-                self.teardown()
+        self.teardown()
         logging.debug('killed server object for ' + self.__repr__())
