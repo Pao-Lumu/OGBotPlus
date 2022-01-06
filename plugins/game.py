@@ -45,7 +45,7 @@ async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent)
     if event.author.is_bot:
         return
     if event.channel_id in plugin.app.chat_channels:
-        if len(event.message.content) < 1750:
+        if not event.message.content or len(event.message.content) < 1750:
             for chan in plugin.app.chat_channels_obj:
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
