@@ -2,6 +2,9 @@ import asyncio
 import logging
 from typing import List
 
+import docker.errors
+import requests.exceptions
+
 from utils.servers.base import BaseServer
 
 
@@ -51,21 +54,33 @@ class BaseDockerServer(BaseServer):
         pass
 
     def is_running(self) -> bool:
-        logging.debug("is_running")
-        self.proc.reload()
-        if self.proc.status == 'running':
-            return True
-        else:
+        logging.debug("checking if server is running")
+        try:
+            self.proc.reload()
+            if self.proc.status == 'running':
+                return True
+            else:
+                return False
+        except requests.exceptions.HTTPError:
+            return False
+        except docker.errors.NotFound:
             return False
 
     async def wait_for_death(self):
-        # print('waiting for the server to DIE')
+        logging.debug('waiting for the server to DIE')
         while True:
-            self.proc.reload()
-            if self.proc.status == 'running':
-                await asyncio.sleep(5)
-            else:
-                await asyncio.sleep(2)
+            try:
+                self.proc.reload()
+                if self.proc.status == 'running':
+                    await asyncio.sleep(5)
+                else:
+                    await asyncio.sleep(2)
+                    break
+            except requests.exceptions.HTTPError:
                 break
-        self.teardown()
+            except docker.errors.NotFound:
+                logging.info("Docker containter no longer found. Possibly shut down.")
+                pass
+            finally:
+                self.teardown()
         logging.debug('killed server object for ' + self.__repr__())
