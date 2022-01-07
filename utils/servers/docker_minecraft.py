@@ -72,7 +72,7 @@ class MinecraftDockerServer(BaseDockerServer):
             r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*|.* has completed the .*)")
         player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*|\*\s.*?\s.*)")
         death_filter = regex.compile(
-            r"FO\]:?(?:.*tedServer\]:)? ([\w_]+) (died|drowned|blew up|fell|burned|froze|starved|suffocated|withered|walked into a cactus|experienced kinetic energy|discovered (?:the )?floor was lava|tried to swim in lava|hit the ground|didn't want to live|went (?:up in flames|off with a bang)|walked into (?:fire|danger)|was (?:killed|shot|slain|pummeled|pricked|blown up|impaled|squashed|squished|skewered|poked|roasted|burnt|frozen|struck by lightning|fireballed|stung|doomed))(.*)")
+            r"FO\]:?(?:.*tedServer\]:)? ([\w_]+) (died|drowned|blew up|fell|burned|froze|starved|suffocated|withered|walked into a cactus|experienced kinetic energy|discovered (?:the )?floor was lava|tried to swim in lava|hit the ground|didn't want to live|went (?:up in flames|off with a bang)|walked into (?:fire|danger)|was (?:killed|shot|slain|pummeled|pricked|blown up|impaled|squashed|squished|skewered|poked|roasted|burnt|frozen|struck by lightning|fireballed|stung|doomed))\s(.*)")
         msgs = []
         mentioned_users = []
         for line in out:
@@ -87,7 +87,8 @@ class MinecraftDockerServer(BaseDockerServer):
             elif raw_server_msg:
                 msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
             elif raw_deathr_msg:
-                msgs.append('\N{SKULL} ' + " ".join(raw_deathr_msg) + ' \N{SKULL}')
+                skull = '\N{SKULL}'
+                msgs.append((f'{skull} {" ".join(raw_deathr_msg[0])} {skull}', None))
             else:
                 continue
         if msgs:
