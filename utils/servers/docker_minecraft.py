@@ -69,13 +69,16 @@ class MinecraftDockerServer(BaseDockerServer):
 
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
-            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
-        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
+            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*|.* has completed the .*)")
+        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*|\*\s.*?\s.*)")
+        death_filter = regex.compile(
+            r"FO\]:?(?:.*tedServer\]:)? ([\w_]+) (died|drowned|blew up|fell|burned|froze|starved|suffocated|withered|walked into a cactus|experienced kinetic energy|discovered (?:the )?floor was lava|tried to swim in lava|hit the ground|didn't want to live|went (?:up in flames|off with a bang)|walked into (?:fire|danger)|was (?:killed|shot|slain|pummeled|pricked|blown up|impaled|squashed|squished|skewered|poked|roasted|burnt|frozen|struck by lightning|fireballed|stung|doomed))(.*)")
         msgs = []
         mentioned_users = []
         for line in out:
             raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
             raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
+            raw_deathr_msg: List[Optional[str]] = regex.findall(death_filter, line)
 
             if raw_player_msg:
                 ret = self.check_for_mentions(raw_player_msg[0])
@@ -83,6 +86,8 @@ class MinecraftDockerServer(BaseDockerServer):
                 msgs.append((ret[1], mentioned_users))
             elif raw_server_msg:
                 msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
+            elif raw_deathr_msg:
+                msgs.append('\N{SKULL} ' + " ".join(raw_deathr_msg) + ' \N{SKULL}')
             else:
                 continue
         if msgs:
