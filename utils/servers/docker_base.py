@@ -79,7 +79,7 @@ class BaseDockerServer(BaseServer):
             except requests.exceptions.HTTPError:
                 break
             except docker.errors.NotFound:
-                logging.info("Docker containter no longer found. Possibly shut down.")
+                logging.info("Docker container no longer found. Possibly shut down.")
                 pass
         self.teardown()
         logging.debug('killed server object for ' + self.__repr__())
