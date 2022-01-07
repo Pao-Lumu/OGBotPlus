@@ -108,6 +108,7 @@ class MinecraftDockerServer(BaseDockerServer):
         return output
 
     async def chat_from_guild_to_game(self):
+        msg: hikari.events.GuildMessageCreateEvent
         while self.is_running() and self.bot.is_alive:
             try:
                 msg = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
@@ -147,6 +148,11 @@ class MinecraftDockerServer(BaseDockerServer):
                             self.rcon.command(f"say {line}")
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
+                if msg.message.attachments:
+                    for att in msg.message.attachments:
+                        # TODO: support multiple file attachments better (i.e. compress this down to one message
+                        data = f"§9§l{msg.author.username}§r: sent an {att.media_type}"
+                        self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
                 await asyncio.sleep(2)
