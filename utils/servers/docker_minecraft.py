@@ -148,7 +148,7 @@ class MinecraftDockerServer(BaseDockerServer):
                             self.rcon.command(f"say {line}")
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
-                if msg.message.attachments and not msg.author.is_bot:
+                if hasattr(msg.message, 'attachments') and not msg.author.is_bot:
                     for att in msg.message.attachments:
                         # TODO: support multiple file attachments better (i.e. compress this down to one message
                         data = f"§9§l{msg.author.username}§r: sent an {att.media_type}"
