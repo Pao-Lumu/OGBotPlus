@@ -130,12 +130,14 @@ class MinecraftDockerServer(BaseDockerServer):
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
                 if msg.message.attachments and not msg.author.is_bot:
-                    logging.critical("YO")
+                    # logging.critical("YO")
                     await self._rcon_connect()
-                    cnt = [att.extension for att in msg.message.attachments]
+                    cnt = []
+                    for att in msg.message.attachments:
+                        cnt.append(att.extension) if att.extension else cnt.append('file(s) with no extension')
                     cnt.sort()
                     files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
-                    logging.critical("YOOOOO")
+                    # logging.critical("YOOOOO")
 
                     data = f"§l[sent "
                     if len(files) > 1:
