@@ -137,23 +137,23 @@ class MinecraftDockerServer(BaseDockerServer):
                     files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
                     logging.critical("YOOOOO")
 
-                    data = f"sent "
+                    data = f"§l[sent "
                     if len(files) > 1:
                         for k, v in files[:-1]:
                             data += f"a {k}, " if v == 1 else f"{v} {k}s, "
                         for k, v in files[-1:]:
-                            data += f"and a {k}" if v == 1 else f"and {v} {k}s"
+                            data += f"and a {k}" if v == 1 else f"and {v} {k}"
                     else:
                         for k, v in files:
                             data += f"a {k}" if v == 1 else f"{v} {k}s"
-                    logging.critical("YOOOOOOOOOOOOOOO")
+                    # logging.critical("YOOOOOOOOOOOOOOO")
 
                     content = self.generate_valid_message(msg, [data])
-                    logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
+                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
                     async with self.rcon_lock:
                         for line in content:
-                            self.rcon.command(f"say §l [{line}] §r")
-                    logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+                            self.rcon.command(f"say {line}]§r")
+                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
                     # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
