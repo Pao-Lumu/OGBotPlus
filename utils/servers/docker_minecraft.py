@@ -150,6 +150,7 @@ class MinecraftDockerServer(BaseDockerServer):
                         logging.critical("YOOOOOOOOOOOOOOO")
 
                         content = self.generate_valid_message(msg, [data])
+                        logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
                         async with self.rcon_lock:
                             for line in content:
                                 self.rcon.command(f"say {line}")
@@ -166,10 +167,10 @@ class MinecraftDockerServer(BaseDockerServer):
                                         delete_after=10)
                 continue
             except AttributeError as e:
-                logging.error(e, exc_info=True)
+                logging.critical(e, exc_info=True)
             except Exception as e:
-                logging.error("guild2server catchall:")
-                logging.error(e, exc_info=True)
+                logging.critical("guild2server catchall:")
+                logging.critical(e, exc_info=True)
 
     def generate_valid_message(self, event, content: list):
         long = False
