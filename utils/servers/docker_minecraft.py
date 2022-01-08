@@ -129,12 +129,14 @@ class MinecraftDockerServer(BaseDockerServer):
                             self.rcon.command(f"say {line}")
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
-                if hasattr(msg.message, 'attachments') and not msg.author.is_bot:
+                if msg.message.attachments and not msg.author.is_bot:
+                    logging.critical("YO")
                     await self._rcon_connect()
                     async with self.rcon_lock:
                         cnt = [att.extension for att in msg.message.attachments]
                         cnt.sort()
                         files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
+                        logging.critical("YOOOOO")
 
                         data = f"§9§l{msg.author.username}§r: sent "
                         if len(files) > 1:
@@ -145,11 +147,13 @@ class MinecraftDockerServer(BaseDockerServer):
                         else:
                             for k, v in files:
                                 data += f"a {k}" if v == 1 else f"{v} {k}s"
+                        logging.critical("YOOOOOOOOOOOOOOO")
 
-                        content = data
+                        content = self.generate_valid_message(msg, [data])
                         async with self.rcon_lock:
                             for line in content:
                                 self.rcon.command(f"say {line}")
+                        logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
                         # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
