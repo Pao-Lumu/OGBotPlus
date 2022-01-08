@@ -132,30 +132,29 @@ class MinecraftDockerServer(BaseDockerServer):
                 if msg.message.attachments and not msg.author.is_bot:
                     logging.critical("YO")
                     await self._rcon_connect()
+                    cnt = [att.extension for att in msg.message.attachments]
+                    cnt.sort()
+                    files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
+                    logging.critical("YOOOOO")
+
+                    data = f"§9§l{msg.author.username}§r: sent "
+                    if len(files) > 1:
+                        for k, v in files[:-1]:
+                            data += f"a {k}, " if v == 1 else f"{v} {k}s, "
+                        for k, v in files[-1:]:
+                            data += f"and a {k}" if v == 1 else f"and {v} {k}s"
+                    else:
+                        for k, v in files:
+                            data += f"a {k}" if v == 1 else f"{v} {k}s"
+                    logging.critical("YOOOOOOOOOOOOOOO")
+
+                    content = self.generate_valid_message(msg, [data])
+                    logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
                     async with self.rcon_lock:
-                        cnt = [att.extension for att in msg.message.attachments]
-                        cnt.sort()
-                        files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
-                        logging.critical("YOOOOO")
-
-                        data = f"§9§l{msg.author.username}§r: sent "
-                        if len(files) > 1:
-                            for k, v in files[:-1]:
-                                data += f"a {k}, " if v == 1 else f"{v} {k}s, "
-                            for k, v in files[-1:]:
-                                data += f"and a {k}" if v == 1 else f"and {v} {k}s"
-                        else:
-                            for k, v in files:
-                                data += f"a {k}" if v == 1 else f"{v} {k}s"
-                        logging.critical("YOOOOOOOOOOOOOOO")
-
-                        content = self.generate_valid_message(msg, [data])
-                        logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
-                        async with self.rcon_lock:
-                            for line in content:
-                                self.rcon.command(f"say {line}")
-                        logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-                        # self.rcon.command(f"say {data}")
+                        for line in content:
+                            self.rcon.command(f"say {line}")
+                    logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+                    # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
                 await asyncio.sleep(2)
