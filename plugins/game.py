@@ -50,7 +50,7 @@ async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent)
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
                     await chan.send(
-                        f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}",
+                        f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content if event.message.content else ''}",
                         user_mentions=event.message.mentions.users, attachments=event.message.attachments)
         else:
             await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
