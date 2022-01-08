@@ -181,9 +181,10 @@ async def rifts(ctx):
 @lightbulb.add_checks(lightbulb.human_only)
 @lightbulb.command("pricecheck", """Check prices of items on warframe.market""", aliases=["pc", "PC", "Pc", "pC"])
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
-async def pricecheck(ctx, *, item):
+async def pricecheck(ctx):
     global wf_mark_items
     global wf_mark_last_update
+    item = ctx.options.text
     name = str(item).lower()
     if time.mktime(
             datetime.utcnow().timetuple()) > wf_mark_last_update + 60 * 60 * 60 or not wf_mark_items:
