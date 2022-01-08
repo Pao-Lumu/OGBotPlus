@@ -152,7 +152,7 @@ class MinecraftDockerServer(BaseDockerServer):
                     logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
                     async with self.rcon_lock:
                         for line in content:
-                            self.rcon.command(f"say §l<{line}>§r")
+                            self.rcon.command(f"say §l <{line}> §r")
                     logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
                     # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
