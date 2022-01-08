@@ -3,6 +3,7 @@ import datetime
 import logging
 import socket
 import textwrap as tw
+from collections import Counter
 from typing import List, Optional
 
 import hikari
@@ -121,27 +122,7 @@ class MinecraftDockerServer(BaseDockerServer):
                 elif msg.content:
                     await self._rcon_connect()
                     content = regex.sub(r'<(:\w+:)\d+>', r'\1', msg.content).split('\n')  # split on msg newlines
-                    long = False
-                    for index, line in enumerate(content):
-                        data = f"§9§l{msg.author.username}§r: {line}"
-                        if len(data) >= 100:
-                            # if length of prefix + msg > 100 chars...
-                            if index == 0:
-                                # ...and current line is the first line, split the line, adding a prefix...
-                                content[index] = tw.wrap(line, 90, initial_indent=f"§9§l{msg.author.username}§r: ")
-                            else:
-                                # ...else, just split the line, without the prefix.
-                                content[index] = tw.wrap(line, 90)
-                            long = True
-                        elif index == 0:
-                            # ...else, if less than 100 chars and on the first line, set to data variable
-                            content[index] = data
-                        else:
-                            # ...else, just return the line
-                            content[index] = line
-                    if long:
-                        # flatten list into a single layer
-                        content = self.remove_nestings(content)
+                    content = self.generate_valid_message(msg, content)
 
                     async with self.rcon_lock:
                         for line in content:
@@ -149,10 +130,27 @@ class MinecraftDockerServer(BaseDockerServer):
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
                 if hasattr(msg.message, 'attachments') and not msg.author.is_bot:
-                    for att in msg.message.attachments:
-                        # TODO: support multiple file attachments better (i.e. compress this down to one message
-                        data = f"§9§l{msg.author.username}§r: sent an {att.media_type}"
-                        self.rcon.command(f"say {data}")
+                    await self._rcon_connect()
+                    async with self.rcon_lock:
+                        cnt = [att.extension for att in msg.message.attachments]
+                        cnt.sort()
+                        files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
+
+                        data = f"§9§l{msg.author.username}§r: sent "
+                        if len(files) > 1:
+                            for k, v in files[:-1]:
+                                data += f"a {k}, " if v == 1 else f"{v} {k}s, "
+                            for k, v in files[-1:]:
+                                data += f"and a {k}" if v == 1 else f"and {v} {k}s"
+                        else:
+                            for k, v in files:
+                                data += f"a {k}" if v == 1 else f"{v} {k}s"
+
+                        content = data
+                        async with self.rcon_lock:
+                            for line in content:
+                                self.rcon.command(f"say {line}")
+                        # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
                 await asyncio.sleep(2)
@@ -163,10 +161,35 @@ class MinecraftDockerServer(BaseDockerServer):
                         await chan.send("Message failed to send; the bot is broken, tag Evan",
                                         delete_after=10)
                 continue
+            except AttributeError as e:
+                logging.error(e, exc_info=True)
             except Exception as e:
                 logging.error("guild2server catchall:")
-                logging.error(type(e))
-                logging.error(e)
+                logging.error(e, exc_info=True)
+
+    def generate_valid_message(self, event, content: list):
+        long = False
+        for index, line in enumerate(content):
+            data = f"§9§l{event.author.username}§r: {line}"
+            if len(data) >= 100:
+                # if length of prefix + msg > 100 chars...
+                if index == 0:
+                    # ...and current line is the first line, split the line, adding a prefix...
+                    content[index] = tw.wrap(line, 90, initial_indent=f"§9§l{event.author.username}§r: ")
+                else:
+                    # ...else, just split the line, without the prefix.
+                    content[index] = tw.wrap(line, 90)
+                long = True
+            elif index == 0:
+                # ...else, if less than 100 chars and on the first line, set to data variable
+                content[index] = data
+            else:
+                # ...else, just return the line
+                content[index] = line
+        if long:
+            # flatten list into a single layer
+            content = self.remove_nestings(content)
+        return content
 
     async def update_server_information(self):
         tries = 1
