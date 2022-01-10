@@ -27,7 +27,7 @@ class MinecraftDockerServer(BaseDockerServer):
         self.bot.loop.create_task(self.update_server_information())
         self.bot.loop.create_task(self.wait_for_death())
         self.motd: str = kwargs.pop('motd', "A Dockerized Minecraft Server")
-        self._repr = "Minecraft In Docker"
+        self._repr = "MC"
 
     async def _rcon_connect(self):
         logging.debug("rcon_connect")
@@ -45,28 +45,6 @@ class MinecraftDockerServer(BaseDockerServer):
         except Exception as e:
             logging.error(e)
             pass
-
-    # async def read_server_log(self):
-    #     watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
-    #                                                     stdout=asyncio.subprocess.PIPE)
-    #     while self.is_running() and self.bot.is_alive:
-    #         await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
-    #     pass
-    #
-    # async def _read_stream(self, stream: asyncio.streams.StreamReader, cb):
-    #     while True:
-    #         await asyncio.sleep(3)
-    #         try:
-    #             raw = await asyncio.wait_for(stream.read(n=7000), .5)
-    #             raw_str = raw.decode('utf-8')
-    #             lines = raw_str.split('\r\n')
-    #             if lines:
-    #                 await cb(lines)
-    #         except asyncio.exceptions.TimeoutError:
-    #             continue
-    #         except Exception as e:
-    #             print(type(e))
-    #             print(e)
 
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
