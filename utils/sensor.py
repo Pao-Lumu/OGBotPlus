@@ -31,38 +31,47 @@ def are_servers_running(ports: List[int]) -> bool:
 def get_running_servers(ports: List[int]) -> List[Tuple[int, Union[psutil.Process, Container]]]:
     # print("get_running_servers")
     running_servers = []
-    temp = []
-    result = docker_client.containers.list(filters={'status': 'running'})
-    # print("intial dingus")
+    used_ports = []
+    result = docker_client.containers.list(filters={'status': 'running'}, all=True)
+    logging.debug(ports)
 
-    for p in psutil.process_iter(attrs=['connections']):
-        if not p.info['connections']:
+    # bare-metal processes
+    for p in psutil.process_iter():
+        try:
+            if not p.connections(kind='inet4'):
+                continue
+            connections = [y.laddr.port for y in p.connections(kind='inet4')]
+        except psutil.AccessDenied:
             continue
-        connections = [y.laddr.port for y in p.info['connections']]
         connections.sort()
         for x in connections:
-            # print(x)
-            if x in ports and p not in temp:
+            logging.debug(x)
+            if x in ports and p not in used_ports:
                 running_servers.append((x, p))
-                temp.append(p)
-    # print(running_servers)
-    for container in result:
-        for temp, v in container.ports.items():
-            # print("v")
-            # print(v)
-            # asdf = [conn['HostPort'] for conn in v if v]
-            # print(ports)
-            # print(asdf in ports)
-            # print(int(asdf[0]) in ports)
+                used_ports.append(p)
+    logging.debug(running_servers)
 
-            # print([conn['HostPort'] for conn in v if int(conn['HostPort'])])
-            if v:
-                running_servers.extend([(conn['HostPort'], container) for conn in v if int(conn['HostPort']) in ports])
-                logging.debug(f"Key: {temp}; Value: {v}")
+    # docker containers
+    for container in result:
+        for con_port, host_info in container.ports.items():
+            logging.debug("host_info")
+            logging.debug(host_info)
+
+            # asdf = [conn['HostPort'] for conn in host_info if host_info]
+            # logging.debug(asdf in ports)
+            # logging.debug(int(asdf[0]) in ports)
+
+            logging.debug([conn['HostPort'] for conn in host_info if int(conn['HostPort'])])
+            if host_info:
+                running_servers.extend([(conn['HostPort'], container) for conn in host_info if
+                                        int(conn['HostPort']) in ports
+                                        and ':' not in conn['HostIp']
+                                        and 'tcp' in con_port])
+                logging.debug(f"Key: {con_port}; Value: {host_info}")
             else:
-                logging.debug(temp)
-    # print("running_servers")
-    # print(running_servers)
+                logging.debug(con_port)
+    logging.debug("running_servers")
+    logging.debug(running_servers)
     return running_servers
 
 
@@ -82,7 +91,7 @@ def get_running_procs(ports: List[int]) -> List[Tuple[int, Union[psutil.Process,
 
 
 def get_running_containers(ports: List[int]):
-    result = docker_client.containers.list(filters={'status': 'running'})
+    result = docker_client.containers.list(filters={'status': 'running'}, all=True)
     running_cons = []
     for container in result:
         for _, v in container.ports.items():

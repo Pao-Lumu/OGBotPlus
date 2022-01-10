@@ -43,16 +43,16 @@ async def on_start(_):
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
-async def on_chat_message_in_chat_channel(self, event: hikari.GuildMessageCreateEvent):
+async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent):
     if event.author.is_bot:
         return
     if event.channel_id in plugin.app.chat_channels:
-        if len(event.message.content) < 1750:
+        if not event.message.content or len(event.message.content) < 1750:
             for chan in plugin.app.chat_channels_obj:
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
                     await chan.send(
-                        f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content}",
+                        f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content if event.message.content else ''}",
                         user_mentions=event.message.mentions.users, attachments=event.message.attachments)
         else:
             await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")

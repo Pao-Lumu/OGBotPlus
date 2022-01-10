@@ -2,7 +2,6 @@ import asyncio
 import logging
 from typing import Dict, Any, Union
 
-import hikari
 import lightbulb
 from hikari import ActivityType, MemberUpdateEvent, PresenceUpdateEvent, Status, VoiceStateUpdateEvent, RichActivity
 
@@ -14,7 +13,7 @@ plugin = lightbulb.Plugin("Activity")
 
 bot: Union[OGBotPlus, lightbulb.BotApp]
 # print(type(bot))
-lock: asyncio.Lock()
+lock = asyncio.Lock()
 state: Dict[str, Dict[str, Any]] = {}
 attrs = ['is_guild_muted', 'is_guild_deafened', 'is_self_muted', 'is_self_deafened', 'is_streaming',
          'is_video_enabled', 'is_suppressed']

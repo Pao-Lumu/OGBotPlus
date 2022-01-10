@@ -3,6 +3,7 @@ import datetime
 import logging
 import socket
 import textwrap as tw
+from collections import Counter
 from typing import List, Optional
 
 import hikari
@@ -26,7 +27,7 @@ class MinecraftDockerServer(BaseDockerServer):
         self.bot.loop.create_task(self.update_server_information())
         self.bot.loop.create_task(self.wait_for_death())
         self.motd: str = kwargs.pop('motd', "A Dockerized Minecraft Server")
-        self._repr = "Minecraft In Docker"
+        self._repr = "MC"
 
     async def _rcon_connect(self):
         logging.debug("rcon_connect")
@@ -45,37 +46,18 @@ class MinecraftDockerServer(BaseDockerServer):
             logging.error(e)
             pass
 
-    # async def read_server_log(self):
-    #     watcher = await asyncio.create_subprocess_shell(cmd=f"docker logs -f --tail 0 --since 0m {self.proc.id}",
-    #                                                     stdout=asyncio.subprocess.PIPE)
-    #     while self.is_running() and self.bot.is_alive:
-    #         await asyncio.wait([self._read_stream(watcher.stdout, self.process_server_messages)])
-    #     pass
-    #
-    # async def _read_stream(self, stream: asyncio.streams.StreamReader, cb):
-    #     while True:
-    #         await asyncio.sleep(3)
-    #         try:
-    #             raw = await asyncio.wait_for(stream.read(n=7000), .5)
-    #             raw_str = raw.decode('utf-8')
-    #             lines = raw_str.split('\r\n')
-    #             if lines:
-    #                 await cb(lines)
-    #         except asyncio.exceptions.TimeoutError:
-    #             continue
-    #         except Exception as e:
-    #             print(type(e))
-    #             print(e)
-
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
-            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*)")
-        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*)")
+            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*|.* has completed the .*)")
+        player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*|\*\s.*?\s.*)")
+        death_filter = regex.compile(
+            r"FO\]:?(?:.*tedServer\]:)? ([\w_]+) (died|drowned|blew up|fell|burned|froze|starved|suffocated|withered|walked into a cactus|experienced kinetic energy|discovered (?:the )?floor was lava|tried to swim in lava|hit the ground|didn't want to live|went (?:up in flames|off with a bang)|walked into (?:fire|danger)|was (?:killed|shot|slain|pummeled|pricked|blown up|impaled|squashed|squished|skewered|poked|roasted|burnt|frozen|struck by lightning|fireballed|stung|doomed))\s(.*)")
         msgs = []
         mentioned_users = []
         for line in out:
             raw_player_msg: List[Optional[str]] = regex.findall(player_filter, line)
             raw_server_msg: List[Optional[str]] = regex.findall(server_filter, line)
+            raw_deathr_msg: List[Optional[str]] = regex.findall(death_filter, line)
 
             if raw_player_msg:
                 ret = self.check_for_mentions(raw_player_msg[0])
@@ -83,6 +65,9 @@ class MinecraftDockerServer(BaseDockerServer):
                 msgs.append((ret[1], mentioned_users))
             elif raw_server_msg:
                 msgs.append((f'`{raw_server_msg[0].rstrip()}`', None))
+            elif raw_deathr_msg:
+                skull = '\N{SKULL}'
+                msgs.append((f'{skull} {" ".join(raw_deathr_msg[0])} {skull}', None))
             else:
                 continue
         if msgs:
@@ -102,6 +87,7 @@ class MinecraftDockerServer(BaseDockerServer):
         return output
 
     async def chat_from_guild_to_game(self):
+        msg: hikari.events.GuildMessageCreateEvent
         while self.is_running() and self.bot.is_alive:
             try:
                 msg = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
@@ -114,33 +100,41 @@ class MinecraftDockerServer(BaseDockerServer):
                 elif msg.content:
                     await self._rcon_connect()
                     content = regex.sub(r'<(:\w+:)\d+>', r'\1', msg.content).split('\n')  # split on msg newlines
-                    long = False
-                    for index, line in enumerate(content):
-                        data = f"§9§l{msg.author.username}§r: {line}"
-                        if len(data) >= 100:
-                            # if length of prefix + msg > 100 chars...
-                            if index == 0:
-                                # ...and current line is the first line, split the line, adding a prefix...
-                                content[index] = tw.wrap(line, 90, initial_indent=f"§9§l{msg.author.username}§r: ")
-                            else:
-                                # ...else, just split the line, without the prefix.
-                                content[index] = tw.wrap(line, 90)
-                            long = True
-                        elif index == 0:
-                            # ...else, if less than 100 chars and on the first line, set to data variable
-                            content[index] = data
-                        else:
-                            # ...else, just return the line
-                            content[index] = line
-                    if long:
-                        # flatten list into a single layer
-                        content = self.remove_nestings(content)
+                    content = self.generate_valid_message(msg, content)
 
                     async with self.rcon_lock:
                         for line in content:
                             self.rcon.command(f"say {line}")
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
+                if msg.message.attachments and not msg.author.is_bot:
+                    # logging.critical("YO")
+                    await self._rcon_connect()
+                    cnt = []
+                    for att in msg.message.attachments:
+                        cnt.append(att.extension) if att.extension else cnt.append('file(s) with no extension')
+                    cnt.sort()
+                    files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
+                    # logging.critical("YOOOOO")
+
+                    data = f"§l[sent "
+                    if len(files) > 1:
+                        for k, v in files[:-1]:
+                            data += f"a {k}, " if v == 1 else f"{v} {k}s, "
+                        for k, v in files[-1:]:
+                            data += f"and a {k}" if v == 1 else f"and {v} {k}"
+                    else:
+                        for k, v in files:
+                            data += f"a {k}" if v == 1 else f"{v} {k}s"
+                    # logging.critical("YOOOOOOOOOOOOOOO")
+
+                    content = self.generate_valid_message(msg, [data])
+                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
+                    async with self.rcon_lock:
+                        for line in content:
+                            self.rcon.command(f"say {line}]§r")
+                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+                    # self.rcon.command(f"say {data}")
             except mcrcon.MCRconException as e:
                 logging.error(e)
                 await asyncio.sleep(2)
@@ -151,10 +145,35 @@ class MinecraftDockerServer(BaseDockerServer):
                         await chan.send("Message failed to send; the bot is broken, tag Evan",
                                         delete_after=10)
                 continue
+            except AttributeError as e:
+                logging.critical(e, exc_info=True)
             except Exception as e:
-                logging.error("guild2server catchall:")
-                logging.error(type(e))
-                logging.error(e)
+                logging.critical("guild2server catchall:")
+                logging.critical(e, exc_info=True)
+
+    def generate_valid_message(self, event, content: list):
+        long = False
+        for index, line in enumerate(content):
+            data = f"§9§l{event.author.username}§r: {line}"
+            if len(data) >= 100:
+                # if length of prefix + msg > 100 chars...
+                if index == 0:
+                    # ...and current line is the first line, split the line, adding a prefix...
+                    content[index] = tw.wrap(line, 90, initial_indent=f"§9§l{event.author.username}§r: ")
+                else:
+                    # ...else, just split the line, without the prefix.
+                    content[index] = tw.wrap(line, 90)
+                long = True
+            elif index == 0:
+                # ...else, if less than 100 chars and on the first line, set to data variable
+                content[index] = data
+            else:
+                # ...else, just return the line
+                content[index] = line
+        if long:
+            # flatten list into a single layer
+            content = self.remove_nestings(content)
+        return content
 
     async def update_server_information(self):
         tries = 1
