@@ -71,7 +71,8 @@ class MinecraftDockerServer(BaseDockerServer):
             else:
                 continue
         if msgs:
-            x = "\n".join(list(zip(*msgs))[0])
+            # TODO: Limit this to 2000 characters, though it will never be a problem even on any reasonable server
+            x = "\n".join(list(zip(*msgs))[0])  # joins all messages into a single string to reduce total msgs sent
             for chan in self.bot.chat_channels_obj:
                 await chan.send(x, user_mentions=mentioned_users)
         for msg in msgs:
