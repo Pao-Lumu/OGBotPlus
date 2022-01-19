@@ -3,6 +3,7 @@
 # from utils import helpers
 import asyncio
 import logging
+from datetime import datetime
 from typing import Union
 
 import hikari
@@ -23,6 +24,8 @@ loop = None
 check_server = None
 get_current_status = None
 ports = []
+last_sender_id = 0
+last_message_time = 0
 
 
 @plugin.listener(hikari.ShardReadyEvent)
@@ -30,6 +33,8 @@ async def on_start(_):
     global loop
     global check_server
     global ports
+    global last_sender_id
+    global last_message_time
     logging.info("starting game plugin...")
     if not loop:
         loop = asyncio.get_running_loop()
@@ -42,18 +47,23 @@ async def on_start(_):
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent):
+    global last_sender_id
+    global last_message_time
     if event.author.is_bot:
-        return
-    if event.channel_id in plugin.app.chat_channels:
+        pass
+    elif event.channel_id in plugin.app.chat_channels:
         if not event.message.content or len(event.message.content) < 1750:
             for chan in plugin.app.chat_channels_obj:
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
                     await chan.send(
-                        f"`{event.author.username} ({event.get_guild().name})`\n{event.message.content if event.message.content else ''}",
+                        f"""`{event.author.username + ' ' if (not last_sender_id == event.author_id) or (last_message_time + 180 < datetime.now().timestamp()) else ''}({event.get_guild().name})`
+{event.message.content if event.message.content else ''}""",
                         user_mentions=event.message.mentions.users, attachments=event.message.attachments)
         else:
             await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
+    last_sender_id = event.author_id
+    last_message_time = datetime.now().timestamp()
 
 
 async def server_running_loop():
