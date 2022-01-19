@@ -57,7 +57,7 @@ async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent)
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
                     await chan.send(
-                        f"""`{event.author.username + ' ' if (not last_sender_id == event.author_id) or (last_message_time + 180 < datetime.now().timestamp()) else ''}({event.get_guild().name})`
+                        f"""{'`' + event.author.username + ' (' + event.get_guild().name + ')' if (not last_sender_id == event.author_id) or (last_message_time + 180 < datetime.now().timestamp()) else ''}`
 {event.message.content if event.message.content else ''}""",
                         user_mentions=event.message.mentions.users, attachments=event.message.attachments)
         else:
