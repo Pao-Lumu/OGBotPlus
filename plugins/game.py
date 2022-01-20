@@ -25,6 +25,7 @@ check_server = None
 get_current_status = None
 ports = []
 last_sender_id = 0
+last_guild_id = 0
 last_message_time = 0
 
 
@@ -48,21 +49,25 @@ async def on_start(_):
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent):
     global last_sender_id
+    global last_guild_id
     global last_message_time
     if event.author.is_bot:
-        pass
+        return
     elif event.channel_id in plugin.app.chat_channels:
         if not event.message.content or len(event.message.content) < 1750:
+            msg = ''
+            if last_sender_id != event.author_id or last_guild_id != event.guild_id or datetime.now().timestamp() < int(last_message_time) + 180:
+                msg += f"`{event.author.username} ({event.get_guild().name})`"
+            if event.message.content:
+                msg += "\n" + event.message.content
             for chan in plugin.app.chat_channels_obj:
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
-                    await chan.send(
-                        f"""{'`' + event.author.username + ' (' + event.get_guild().name + ')`' if (not last_sender_id == event.author_id) or (last_message_time + 180 < datetime.now().timestamp()) else ''}
-{event.message.content if event.message.content else ''}""",
-                        user_mentions=event.message.mentions.users, attachments=event.message.attachments)
+                    await chan.send(msg, user_mentions=event.message.mentions.users, attachments=event.message.attachments)
         else:
             await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
     last_sender_id = event.author_id
+    last_guild_id = event.guild_id
     last_message_time = datetime.now().timestamp()
 
 
