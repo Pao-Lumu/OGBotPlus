@@ -73,9 +73,8 @@ class BaseServer:
     async def sleep_with_backoff(tries, wait_time=5):
         await asyncio.sleep(wait_time * tries)
 
-    # @property
-    # def status(self) -> psutil.Process:
-    #     return self.proc
+    async def send_game_message(self, content: List[str]):
+        pass
 
     @property
     def players(self) -> int:
