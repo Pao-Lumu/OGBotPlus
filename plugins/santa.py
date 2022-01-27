@@ -37,7 +37,7 @@ else:
 
 
 @plugin.listener(hikari.events.GuildReactionAddEvent)
-async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEvent):
+async def on_raw_reaction_add(reaction: hikari.events.GuildReactionAddEvent):
     try:
         author = reaction.member
     except:
@@ -46,17 +46,17 @@ async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEven
         channel = plugin.app.cache.get_guild_channel(reaction.channel_id)
         msg_ref = await channel.fetch_message(reaction.message_id)
 
-        async with self.santa_sql_lock:
+        async with santa_sql_lock:
             try:
-                self.cursor.execute("SELECT question, message_responses FROM questions WHERE message_id=?",
+                cursor.execute("SELECT question, message_responses FROM questions WHERE message_id=?",
                                     (reaction.message_id,))
-                q, pickled_responses = self.cursor.fetchone()
+                q, pickled_responses = cursor.fetchone()
             except TypeError:
                 return
         responses: dict = pickle.loads(pickled_responses)
         while True:
             sent = await author.send(f'The question you have been asked is: {q}\nType your response below.')
-            asyncio.ensure_future(self.delete(sent, 120))
+            asyncio.ensure_future(delete(sent, 120))
 
             message = await plugin.app.wait_for(hikari.DMMessageCreateEvent, timeout=120.0, predicate=lambda
                 msg: author == msg.author and msg.channel_id == sent.channel_id)
@@ -64,40 +64,40 @@ async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEven
 
             e = hikari.Embed(title="Somebody asked...", description='{}\n\n`VVVV Responses VVVV`'.format(q))
             for x, y in responses.items():
-                e.add_field(name=self.uplook[int(x)], value=y, inline=False)
+                e.add_field(name=uplook[int(x)], value=y, inline=False)
 
-            preview = await self.send_with_yes_no_reactions(author,
+            preview = await send_with_yes_no_reactions(author,
                                                             message=f'''Does this look correct?\n({emoji.THUMBS_UP} for yes, {emoji.THUMBS_DOWN} for no)''',
                                                             embed=e)
             try:
-                confirmation = await self.get_confirmation(author, preview)
+                confirmation = await get_confirmation(author, preview)
                 if confirmation:
                     await preview.delete()
                     sent = await author.send(
                         'Okay, your response will be sent.\nYou may edit it by reacting to the question again.')
                     await msg_ref.edit(embed=e)
 
-                    async with self.santa_sql_lock:
+                    async with santa_sql_lock:
                         try:
-                            self.cursor.execute("SELECT message_responses FROM questions WHERE message_id=?",
+                            cursor.execute("SELECT message_responses FROM questions WHERE message_id=?",
                                                 (reaction.message_id,))
 
-                            responses = pickle.loads(self.cursor.fetchone()[0])
+                            responses = pickle.loads(cursor.fetchone()[0])
                             responses[str(author.id)] = message.content
                             pickled_responses = pickle.dumps(responses)
 
-                            self.cursor.execute("UPDATE questions SET message_responses=? WHERE message_id=?",
+                            cursor.execute("UPDATE questions SET message_responses=? WHERE message_id=?",
                                                 (pickled_responses, reaction.message_id,))
-                            self.conn.commit()
+                            conn.commit()
 
                             e = hikari.Embed(title="Somebody asked...", description=q)
                             for x, y in responses.items():
-                                e.add_field(name=self.uplook[int(x)], value=y, inline=False)
+                                e.add_field(name=uplook[int(x)], value=y, inline=False)
 
                         except Exception as e:
-                            await self.send_error_user(author, e)
+                            await send_error_user(author, e)
                         finally:
-                            self.conn.commit()
+                            conn.commit()
                             break
                 else:
                     continue
@@ -106,7 +106,7 @@ async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEven
                 await dm_channel.send('Timed out. Please try again.')
                 break
             except Exception as e:
-                await self.send_error_user(author, e)
+                await send_error_user(author, e)
 
 
 @plugin.command
@@ -114,14 +114,14 @@ async def on_raw_reaction_add(self, reaction: hikari.events.GuildReactionAddEven
 @lightbulb.command("secret", """Check who your giftee for this year's secret santa is.
 Owner Only: Generate/regenerate all secret santa assignments.""")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
-async def secret(self, ctx: lightbulb.context.base.Context):
+async def secret( ctx: lightbulb.context.base.Context):
     """Check who your giftee for this year's secret santa is.
 Owner Only: Generate/regenerate all secret santa assignments.
     """
     if ctx.author.id in plugin.app.owner_ids:
-        async with self.santa_sql_lock:
+        async with santa_sql_lock:
             people = list()
-            for x, y in self.lookup.items():
+            for x, y in lookup.items():
                 people.append(x)
 
             continue_go = True
@@ -147,21 +147,21 @@ Owner Only: Generate/regenerate all secret santa assignments.
                                  ('Lexi', 'Allen'), ('Lexi', 'CJ'), ('Lexi', 'Cameron'), ('Lexi', 'Forester'),
                                  ('Lexi', 'David'), ('Lexi', 'Steven')]
 
-                continue_go = self.check_for_combos(people, used_combos, banned_combos)
+                continue_go = check_for_combos(people, used_combos, banned_combos)
 
-            self.cursor.execute('DELETE FROM santa')
+            cursor.execute('DELETE FROM santa')
 
             for x, person in enumerate(people):
                 b, g, a = (x - 1) % len(people), x % len(people), (x + 1) % len(people)
                 the_world = (
-                    self.lookup[people[b]], people[b], self.lookup[people[g]], people[g], self.lookup[people[a]],
+                    lookup[people[b]], people[b], lookup[people[g]], people[g], lookup[people[a]],
                     people[a])
-                self.cursor.execute('INSERT INTO santa VALUES (?,?,?,?,?,?)', the_world)
-            self.conn.commit()
+                cursor.execute('INSERT INTO santa VALUES (?,?,?,?,?,?)', the_world)
+            conn.commit()
 
         for x, person in enumerate(people):
             try:
-                discord_id = self.lookup[person]
+                discord_id = lookup[person]
                 gifter = person
                 giftee = people[(x + 1) % len(people)]
                 e = hikari.Embed()
@@ -184,17 +184,17 @@ Misleading your secret santa is allowed & encouraged.
                 member = plugin.app.cache.get_user(discord_id)
                 await member.send(embed=e)
             except Exception as e:
-                await self.send_error_ctx(ctx, e)
+                await send_error_ctx(ctx, e)
     else:
-        async with self.santa_sql_lock:
+        async with santa_sql_lock:
             try:
-                self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
-                u_id, u_name, _, _, g_id, g_name = self.cursor.fetchone()
+                cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
+                u_id, u_name, _, _, g_id, g_name = cursor.fetchone()
                 await ctx.respond("{}, you have been assigned {}'s secret santa.".format(u_name, g_name))
             except TypeError:
                 await ctx.respond("You're not a secret santa! If you think this is in error, talk to Evan.")
             except Exception as e:
-                await self.send_error_ctx(ctx, e)
+                await send_error_ctx(ctx, e)
                 pass
 
 
@@ -202,12 +202,12 @@ Misleading your secret santa is allowed & encouraged.
 @lightbulb.add_checks(lightbulb.dm_only, lightbulb.human_only)
 @lightbulb.command("ask","""Ask your assigned giftee a question.""")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
-async def ask(self, ctx: lightbulb.context.base.Context):
+async def ask( ctx: lightbulb.context.base.Context):
     """Ask your assigned giftee a question."""
-    async with self.santa_sql_lock:
+    async with santa_sql_lock:
         try:
-            self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
-            u_id, u_name, _, _, g_id, g_name = self.cursor.fetchone()
+            cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
+            u_id, u_name, _, _, g_id, g_name = cursor.fetchone()
         except KeyError:
             await ctx.respond("You're not in the secret santa group!")
         except TypeError:
@@ -229,12 +229,12 @@ async def ask(self, ctx: lightbulb.context.base.Context):
 @lightbulb.add_checks(lightbulb.dm_only, lightbulb.human_only)
 @lightbulb.command("respond", """Respond to your gifter.""")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
-async def respond(self, ctx: lightbulb.context.base.Context):
+async def respond( ctx: lightbulb.context.base.Context):
     """Respond to your gifter."""
-    async with self.santa_sql_lock:
+    async with santa_sql_lock:
         try:
-            self.cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
-            u_id, u_name, g_id, g_name, _, _ = self.cursor.fetchone()
+            cursor.execute('SELECT * FROM santa WHERE user_id=?', (ctx.author.id,))
+            u_id, u_name, g_id, g_name, _, _ = cursor.fetchone()
         except KeyError:
             await ctx.respond("You're not in the secret santa group!")
             return
@@ -258,7 +258,7 @@ async def respond(self, ctx: lightbulb.context.base.Context):
 @lightbulb.add_checks(lightbulb.dm_only, lightbulb.human_only)
 @lightbulb.command("askall", """Send a question to the main server's questions channel for everyone to respond to.""")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
-async def askall(self, ctx: lightbulb.context.base.Context):
+async def askall( ctx: lightbulb.context.base.Context):
     """Send a question to the main server's questions channel for everyone to respond to."""
     if ctx.get_channel():
         await ctx.respond('Please use DMs to set up polls.')
@@ -281,20 +281,20 @@ async def askall(self, ctx: lightbulb.context.base.Context):
                 continue
             e.title = '_*Someone asked:*_'
             e.description = '{}\n\n`Responses: `'.format(question)
-            preview = await self.send_with_yes_no_reactions(rcvr,
+            preview = await send_with_yes_no_reactions(rcvr,
                                                             message='This is how your question will look. Are you sure you want to send this message?',
                                                             embed=e, extra_reactions=(emoji.CROSS_MARK,))
             try:
-                confirmation = await self.get_confirmation(rcvr, message=preview)
+                confirmation = await get_confirmation(rcvr, message=preview)
                 if confirmation:
                     s = await ctx.respond('Sending...')
                     mm = await plugin.app.cache.get_guild_channel(plugin.app.santa_channel).send(embed=e)
                     await mm.add_reaction(emoji.BALLOT_BOX)
 
-                    async with self.santa_sql_lock:
-                        self.cursor.execute("INSERT INTO questions VALUES (?,?,?)",
+                    async with santa_sql_lock:
+                        cursor.execute("INSERT INTO questions VALUES (?,?,?)",
                                             (mm.id, question, pickle.dumps(dict())))
-                        self.conn.commit()
+                        conn.commit()
                     await s.edit('Message sent!')
                     break
                 else:
@@ -304,17 +304,17 @@ async def askall(self, ctx: lightbulb.context.base.Context):
             except asyncio.CancelledError:
                 await preview.delete()
                 msg = await ctx.respond('Okay, canceled question creation.')
-                asyncio.ensure_future(self.delete(msg, 30))
+                asyncio.ensure_future(delete(msg, 30))
                 break
         except asyncio.TimeoutError:
             msg = await ctx.respond('Timed out. Please send the command again.')
-            asyncio.ensure_future(self.delete(msg, 30))
+            asyncio.ensure_future(delete(msg, 30))
             break
         except Exception as e:
-            await self.send_error_ctx(ctx, e)
+            await send_error_ctx(ctx, e)
 
 
-async def send_with_yes_no_reactions(self, receiver: hikari.User, message: str = None,
+async def send_with_yes_no_reactions( receiver: hikari.User, message: str = None,
                                      embed: hikari.Embed = None, extra_reactions: tuple = ()):
     reactions = [emoji.THUMBS_UP, emoji.THUMBS_DOWN]
 
@@ -322,19 +322,19 @@ async def send_with_yes_no_reactions(self, receiver: hikari.User, message: str =
 
     dm_channel = await receiver.fetch_dm_channel()
     msg = await dm_channel.send(message, embed=embed)
-    asyncio.ensure_future(self.delete(msg, 120))
+    asyncio.ensure_future(delete(msg, 120))
 
     try:
         for x in reactions:
             await msg.add_reaction(x)
 
     except Exception as e:
-        await self.send_error_user(receiver, e)
+        await send_error_user(receiver, e)
 
     return msg
 
 
-async def get_confirmation(self, rcvr, message: hikari.Message = None, timeout=120.0):
+async def get_confirmation( rcvr, message: hikari.Message = None, timeout=120.0):
     rcvr_dm = await rcvr.fetch_dm_channel()
 
     def same_channel(rctn: hikari.DMReactionAddEvent):
@@ -374,7 +374,7 @@ async def delete(msg, delay):
         pass
 
 
-async def send_error_user(self, rcvr: hikari.User, e):
+async def send_error_user( rcvr: hikari.User, e):
     # await rcvr.send(f'Something has gone wrong. Evan has been notified.\nError: {type(e)}: {e}')
     # plugin.app.bprint(f'{type(e)}: {e}')
     await rcvr.send(
@@ -383,7 +383,7 @@ async def send_error_user(self, rcvr: hikari.User, e):
     await plugin.app.cache.get_user(list(plugin.app.owner_ids)[0]).send(embeds.error_embed(f'{type(e)}: {e}'))
 
 
-async def send_error_ctx(self, rcvr: lightbulb.context.base.Context, e):
+async def send_error_ctx( rcvr: lightbulb.context.base.Context, e):
     # await rcvr.respond(f'Something has gone wrong. Evan has been notified.\nError: {type(e)}: {e}')
     # plugin.app.bprint(f'{type(e)}: {e}')
     await rcvr.respond(
