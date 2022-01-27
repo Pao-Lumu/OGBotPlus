@@ -34,8 +34,6 @@ async def on_start(_):
     global loop
     global check_server
     global ports
-    global last_sender_id
-    global last_message_time
     logging.info("starting game plugin...")
     if not loop:
         loop = asyncio.get_running_loop()
@@ -48,24 +46,28 @@ async def on_start(_):
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent):
-    global last_sender_id
-    global last_guild_id
-    global last_message_time
     if event.author.is_bot:
         return
     elif event.channel_id in plugin.app.chat_channels:
+        global last_sender_id
+        global last_guild_id
+        global last_message_time
         if not event.message.content or len(event.message.content) < 1750:
             msg = ''
-            if last_sender_id != event.author_id or last_guild_id != event.guild_id or datetime.now().timestamp() < int(last_message_time) + 180:
+            if last_sender_id != int(event.author_id) \
+                    or last_guild_id != int(event.guild_id) \
+                    or int(datetime.now().timestamp()) > int(last_message_time) + 180:
                 msg += f"`{event.author.username} ({event.get_guild().name})`"
             if event.message.content:
                 msg += "\n" + event.message.content
             for chan in plugin.app.chat_channels_obj:
                 chan: hikari.GuildTextChannel
                 if chan.id != event.channel_id:
-                    await chan.send(msg, user_mentions=event.message.mentions.users, attachments=event.message.attachments)
+                    await chan.send(msg, user_mentions=event.message.mentions.users,
+                                    attachments=event.message.attachments)
         else:
             await event.member.send("The message you sent was too long. `len(event.message.content) > 1750`")
+    # TODO: update these when a chat message is sent from the game, so it doesn't look like it was sent from the game
     last_sender_id = event.author_id
     last_guild_id = event.guild_id
     last_message_time = datetime.now().timestamp()
@@ -119,7 +121,7 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
         process: Container
         print('test')
         if 'minecraft' in process.labels['com.docker.compose.service']:
-            print('asdfasd')
+            print('found docker minecraft')
             return mc_docker.MinecraftDockerServer(bot, process, **gameinfo)
     elif isinstance(process, psutil.Process):
         if 'srcds' in executable:
@@ -135,3 +137,15 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
             pass  # nyi
     else:
         print("Didn't find server... hm.")
+
+
+async def receive_guild_chat(messages: list, **kwargs):
+    # TODO: Fill this out
+    for chan in plugin.app.chat_channels_obj:
+        pass
+        # await chan.send(msg, user_mentions=mentioned_users)
+    pass
+
+
+async def send_game_chat(messages: list):
+    pass

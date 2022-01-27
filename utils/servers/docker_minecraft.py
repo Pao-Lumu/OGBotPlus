@@ -71,7 +71,7 @@ class MinecraftDockerServer(BaseDockerServer):
             else:
                 continue
         if msgs:
-            # TODO: Limit this to 2000 characters, though it will never be a problem even on any reasonable server
+            # TODO: Limit this to 2000 characters, though it will never be a problem even on a rather large server
             x = "\n".join(list(zip(*msgs))[0])  # joins all messages into a single string to reduce total msgs sent
             for chan in self.bot.chat_channels_obj:
                 await chan.send(x, user_mentions=mentioned_users)
@@ -99,24 +99,19 @@ class MinecraftDockerServer(BaseDockerServer):
                 if not hasattr(msg, 'author') or (hasattr(msg, 'author') and msg.author.is_bot):
                     pass
                 elif msg.content:
-                    await self._rcon_connect()
+
                     content = regex.sub(r'<(:\w+:)\d+>', r'\1', msg.content).split('\n')  # split on msg newlines
                     content = self.generate_valid_message(msg, content)
 
-                    async with self.rcon_lock:
-                        for line in content:
-                            self.rcon.command(f"say {line}")
+                    await self.send_game_message(content)
 
                     self.bot.bprint(f"Discord | <{msg.author.username}>: {' '.join(content)}")
                 if msg.message.attachments and not msg.author.is_bot:
-                    # logging.critical("YO")
-                    await self._rcon_connect()
                     cnt = []
                     for att in msg.message.attachments:
                         cnt.append(att.extension) if att.extension else cnt.append('file(s) with no extension')
                     cnt.sort()
                     files = [(k, cnt.count(k)) for k, v in Counter(cnt).most_common()]
-                    # logging.critical("YOOOOO")
 
                     data = f"§l[sent "
                     if len(files) > 1:
@@ -127,15 +122,10 @@ class MinecraftDockerServer(BaseDockerServer):
                     else:
                         for k, v in files:
                             data += f"a {k}" if v == 1 else f"{v} {k}s"
-                    # logging.critical("YOOOOOOOOOOOOOOO")
 
                     content = self.generate_valid_message(msg, [data])
-                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOO")
-                    async with self.rcon_lock:
-                        for line in content:
-                            self.rcon.command(f"say {line}]§r")
-                    # logging.critical("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-                    # self.rcon.command(f"say {data}")
+
+                    await self.send_game_message(content)
             except mcrcon.MCRconException as e:
                 logging.error(e)
                 await asyncio.sleep(2)
@@ -175,6 +165,13 @@ class MinecraftDockerServer(BaseDockerServer):
             # flatten list into a single layer
             content = self.remove_nestings(content)
         return content
+
+    async def send_game_message(self, content: List[str]):
+        await self._rcon_connect()
+
+        async with self.rcon_lock:
+            for line in content:
+                self.rcon.command(f"say {line}")
 
     async def update_server_information(self):
         tries = 1
