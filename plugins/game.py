@@ -57,7 +57,7 @@ async def on_chat_message_in_chat_channel(event: hikari.GuildMessageCreateEvent)
             if last_sender_id != int(event.author_id) \
                     or last_guild_id != int(event.guild_id) \
                     or int(datetime.now().timestamp()) > int(last_message_time) + 180:
-                msg += f"__`{event.author.username} ({event.get_guild().name})`__"
+                msg += f"___**[{event.author.username} ({event.get_guild().name})]**___"
             if event.message.content:
                 msg += "\n" + event.message.content
             for chan in plugin.app.chat_channels_obj:
