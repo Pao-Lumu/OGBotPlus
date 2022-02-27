@@ -109,7 +109,7 @@ class MinecraftServer(BaseServer):
     async def chat_from_guild_to_game(self):
         while self.proc.is_running() and self.bot.is_alive:
             try:
-                msg = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
+                msg: hikari.Message = await self.bot.wait_for(hikari.events.GuildMessageCreateEvent, predicate=self.is_chat_channel,
                                               timeout=5)
             except asyncio.exceptions.TimeoutError:
                 continue
