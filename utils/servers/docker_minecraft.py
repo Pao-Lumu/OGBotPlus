@@ -48,7 +48,7 @@ class MinecraftDockerServer(BaseDockerServer):
 
     async def process_server_messages(self, out: List[str]):
         server_filter = regex.compile(
-            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has made the .*|.* has completed the .*)")
+            r"INFO\]:?(?:.*tedServer\]:)? (\[[^\]]*: .*\].*|(?<=]:\s).* the game|.* has (?:made|completed|reached) the .*)")
         player_filter = regex.compile(r"FO\]:?(?:.*tedServer\]:)? (\[Server\].*|<.*>.*|\*\s.*?\s.*)")
         death_filter = regex.compile(
             r"FO\]:?(?:.*tedServer\]:)? ([\w_]+) (died|drowned|blew up|fell|burned|froze|starved|suffocated|withered|walked into a cactus|experienced kinetic energy|discovered (?:the )?floor was lava|tried to swim in lava|hit the ground|didn't want to live|went (?:up in flames|off with a bang)|walked into (?:fire|danger)|was (?:killed|shot|slain|pummeled|pricked|blown up|impaled|squashed|squished|skewered|poked|roasted|burnt|frozen|struck by lightning|fireballed|stung|doomed))\s(.*)")
@@ -122,7 +122,7 @@ class MinecraftDockerServer(BaseDockerServer):
                     else:
                         for k, v in files:
                             data += f"a {k}" if v == 1 else f"{v} {k}s"
-
+                    data += ']'
                     content = self.generate_valid_message(msg, [data])
 
                     await self.send_game_message(content)
