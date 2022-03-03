@@ -13,7 +13,7 @@ from docker.models.containers import Container
 
 # from OGBotPlus import OGBotPlus
 from utils import sensor
-from utils.servers import minecraft, valheim, source, base, docker_minecraft as mc_docker
+from utils.servers import minecraft, source, base, docker_minecraft as mc_docker
 
 plugin = lightbulb.Plugin("Game")
 
@@ -131,8 +131,8 @@ def generate_server_object(bot, process: Union[Container, psutil.Process], gamei
                     or 'server.jar' in ' '.join(gameinfo['command'])
                     or 'nogui' in ' '.join(gameinfo['command'])):  # words cannot describe how scuffed this is.
             return minecraft.MinecraftServer(bot, process, **gameinfo)
-        elif 'valheim_server' in executable:
-            return valheim.ValheimServer(bot, process, **gameinfo)
+        # elif 'valheim_server' in executable:
+        #     return valheim.ValheimServer(bot, process, **gameinfo)
         elif 'terraria' in executable:
             pass  # nyi
     else:
