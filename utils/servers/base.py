@@ -30,6 +30,10 @@ class BaseServer:
             self.loop.create_task(self.update_server_information())
             self.loop.create_task(self.wait_for_death())
 
+    @property
+    def ident(self):
+        return hash(self.name)
+
     def __repr__(self):
         return self._repr
 

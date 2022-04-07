@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from abc import abstractmethod
 from typing import List
 
 import docker.errors
@@ -50,6 +51,7 @@ class BaseDockerServer(BaseServer):
                 print(type(e))
                 print(e)
 
+    @abstractmethod
     async def process_server_messages(self, text: List[str]):
         pass
 
