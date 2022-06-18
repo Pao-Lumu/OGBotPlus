@@ -259,7 +259,7 @@ Please be more specific.
 @plugin.command
 @lightbulb.add_checks(lightbulb.human_only)
 @lightbulb.command("steelpath", """Lists all current Steel Path rewards""", aliases=['sp', 'steel'])
-@lightbulb.implements(lightbulb.commands.PrefixCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def steelpath(ctx):
     """Lists all current Steel Path rewards"""
 
