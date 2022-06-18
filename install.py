@@ -5,7 +5,7 @@ _all_ = [
     "aiofiles",
     "colorama",
     "hikari",
-    "hikari-lightbulb"
+    "hikari-lightbulb",
     "mcrcon",
     "mcstatus",
     "pyfiglet",
