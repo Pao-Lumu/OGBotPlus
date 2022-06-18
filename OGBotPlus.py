@@ -27,7 +27,8 @@ class OGBotPlus(lightbulb.BotApp, ABC):
         self.game_chat_info: Dict[str, str] = {}
         self._game_running = asyncio.Event()
         self._game_stopped = asyncio.Event()
-        super().__init__(intents=intents, prefix=prefix, owner_ids=owner_ids, ignore_bots=ignore_bots, **kwargs)
+        super().__init__(intents=intents, prefix=prefix, owner_ids=owner_ids, ignore_bots=ignore_bots,
+                         default_enabled_guilds=config['main_guilds'], **kwargs)
 
     async def wait_until_game_running(self, delay=0):
         await self._game_running.wait()
