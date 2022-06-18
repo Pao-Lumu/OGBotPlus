@@ -283,10 +283,7 @@ async def pc_autocomp(opt: hikari.AutocompleteInteractionOption, autocomp):
     if len(opt.value) < 3:
         return 'Please type at least 3 characters'
     if wf_mkt_items:
-        print(opt.value)
-        print([item.get('item_name') for item in wf_mkt_items])
         response = [item.get('item_name') for item in wf_mkt_items if opt.value.lower() in item.get('item_name').lower()]
-        print(response)
         response.sort()
         if len(response) > 25:
             return response[:25]
