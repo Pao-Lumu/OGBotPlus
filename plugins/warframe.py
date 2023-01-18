@@ -127,9 +127,9 @@ async def nightwave(ctx):
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def rifts(ctx):
     async with aiohttp.ClientSession() as session:
-        async with session.get('https://api.warframestat.us/pc/fissures') as resp:
+        async with session.get('https://api.warframestat.us/pc/fissures?language=en') as resp:
             info = await resp.json()
-    info.sort(key=lambda x: (x['tierNum'], x['isStorm'], x['missionType']))
+    info.sort(key=lambda x: (x['tierNum'], x['isHard'], x['isStorm'], x['missionType']))
     last_rift = {'tierNum': -1, 'isStorm': False}
     if len(info):
         e = hikari.Embed(title="Void Fissures", description="All currently active void fissures\n\n")
@@ -148,7 +148,7 @@ async def rifts(ctx):
                 continue
             node = re.sub(r"\)", r" Proxima)", rift['node']) if rift['isStorm'] else rift['node']
             e.add_field(
-                name=f"{rift['missionType']}\n_{node}_",
+                name=f"{rift['missionType']}{' (Steel Path)' if rift['isHard'] else ''}\n_{node}_",
                 value=f"*{rift['eta']}*",
                 inline=True)
         await ctx.respond(embed=e)
