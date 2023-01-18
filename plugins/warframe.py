@@ -105,17 +105,17 @@ async def nightwave(ctx):
         last_mission_type = ""
         for challenge in info['activeChallenges']:
             if 'isDaily' in challenge.keys() and challenge['isDaily']:
-                misson_type = "Daily"
+                mission_type = "Daily"
             elif challenge['isElite']:
-                misson_type = "Elite Weekly"
+                mission_type = "Elite Weekly"
             else:
-                misson_type = "Weekly"
+                mission_type = "Weekly"
 
-            if misson_type != last_mission_type:
-                e.add_field("-=-=-=-=-=-=-=-=-", f"***{misson_type} Missions***")
+            if mission_type != last_mission_type:
+                e.add_field("-=-=-=-=-=-=-=-=-", f"***{mission_type} Missions***")
             e.add_field(name=f"{challenge['title']} ({challenge['reputation']} standing)",
                         value=f"{challenge['desc']}", inline=True)
-            last_mission_type = misson_type
+            last_mission_type = mission_type
         await ctx.respond(embed=e)
     else:
         await ctx.respond("Nightwave is currently inactive.")
