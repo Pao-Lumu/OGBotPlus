@@ -5,17 +5,16 @@ import os
 import sys
 
 import hikari
-import lightbulb
 import pyfiglet
 import toml
 
-from OGBotPlus import OGBotPlus
 import plugins.activity as activity
 import plugins.admin as admin
-import plugins.chat as chat
+# import plugins.chat as chat
 import plugins.memes as memes
 import plugins.santa as santa
 import plugins.warframe as warframe
+from OGBotPlus import OGBotPlus
 
 # Logging setup
 
@@ -100,16 +99,16 @@ plugins = [
     bot.add_plugin(warframe.plugin),
     bot.add_plugin(santa.plugin),
     bot.add_plugin(memes.plugin),
-    bot.add_plugin(chat.plugin),
+    # bot.add_plugin(chat.plugin),
     bot.add_plugin(activity.plugin),
     bot.add_plugin(admin.plugin),
 ]
 
 if os.name != "nt":
     import uvloop
-    import plugins.game as game
+    # import plugins.game as game
 
-    bot.add_plugin(game.plugin)
+    # bot.add_plugin(game.plugin)
     uvloop.install()
 
 @bot.listen(hikari.ShardReadyEvent)
