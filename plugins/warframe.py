@@ -79,19 +79,20 @@ async def baro(ctx: lightbulb.context.Context) -> None:
     else:
         embd = hikari.Embed(title="Void Trader Offerings", color=c)
         embd.set_footer(text=info["character"])
+        message = "{0} is currently at {1}, and will leave on {2} {3}.".format(info['character'], info['location'],
+                                                                               hr_expiry, info['endString'])
         for i, offer in enumerate(info['inventory']):
+
             if i != 25:
                 embd.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits",
                                inline=True)
             elif i == 25:
-                message = None
                 await ctx.respond(message, embed=embd)
+                message = None
                 embd = hikari.Embed(color=c)
                 embd.add_field(name=offer['item'], value=f"{offer['ducats']} ducats + {offer['credits']} credits",
                                inline=True)
 
-        message = "{0} is currently at {1}, and will leave on {2} {3}.".format(info['character'], info['location'],
-                                                                               hr_expiry, info['endString'])
         embd.set_footer(text=info["character"])
         await ctx.respond(message, embed=embd)
 
